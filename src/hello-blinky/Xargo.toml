@@ -1,0 +1,2 @@
+[target.avr-atmega328p.dependencies]
+core = { path = "../libcore" }
