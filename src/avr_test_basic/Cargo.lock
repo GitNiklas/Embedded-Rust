@@ -1,0 +1,19 @@
+[[package]]
+name = "arduino"
+version = "0.1.0"
+
+[[package]]
+name = "avr_test_basic"
+version = "0.1.0"
+dependencies = [
+ "arduino 0.1.0",
+ "avrlib 0.1.0",
+]
+
+[[package]]
+name = "avrlib"
+version = "0.1.0"
+dependencies = [
+ "arduino 0.1.0",
+]
+

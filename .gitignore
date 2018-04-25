@@ -1,3 +1,11 @@
 src/avr_hello_blinky/target/
 
 
+
+src/avrlib/target/
+
+src/\.metadata/
+
+src/avr_test_basic/target/
+
+src/avrlib/Cargo\.lock
