@@ -1,0 +1,6 @@
+[submodule "src/ruduino"]
+	path = src/ruduino
+	url = https://github.com/GitNiklas/ruduino
+[submodule "src/libcore"]
+	path = src/libcore
+	url = https://github.com/GitNiklas/libcore
