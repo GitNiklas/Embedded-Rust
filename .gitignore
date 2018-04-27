@@ -11,3 +11,5 @@ src/avr_test_basic/target/
 src/avrlib/Cargo\.lock
 
 src/avr_test_buf_overflow/target/
+
+src/avr_test_uninitialized/target/
