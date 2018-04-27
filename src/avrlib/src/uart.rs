@@ -62,19 +62,17 @@ pub fn get_u8() -> u8 {
 
 
 // RX Complete Interrupt (Received one Byte)
-#[no_mangle]
-pub extern "avr-interrupt" fn __vector_18() {
+isr_usart_rx_vect!({
 	unsafe_ref!(RX_FIFO).put(reg_read!(UDR0));
-}
+});
 
 // USART Data Register Empty Interrupt (Ready to Transmit Data)
-#[no_mangle]
-pub extern "avr-interrupt" fn __vector_19() {
+isr_usart_udre_vect!({
 	let tx_fifo = unsafe_ref!(TX_FIFO);
 	if !tx_fifo.is_empty() {
 		reg_write!(UDR0, tx_fifo.get());
 	}
 	else {
 		reg_cbi!(UCSR0B, UDRIE0); // Disable Tx Interrupt
-	}
-}
+	}		
+});

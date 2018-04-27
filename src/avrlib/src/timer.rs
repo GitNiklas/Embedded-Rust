@@ -22,9 +22,8 @@ pub fn time_ms() -> u32 {
 }
 
 // Timer/Counter0 Compare Match A
-#[no_mangle]
-pub extern "avr-interrupt" fn __vector_14() {
+isr_timer0_compa_vect!({
 	unsafe {
 		TIME_MS += 1;
 	}
-}
+});

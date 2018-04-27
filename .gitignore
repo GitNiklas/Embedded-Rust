@@ -17,3 +17,5 @@ src/avr_test_uninitialized/target/
 src/avr_test_int_overflow/target/
 
 src/avr_test_stack_overflow/target/
+
+src/avr_test_performance/target/

@@ -9,8 +9,6 @@ use core::ptr::{read_volatile, write_volatile};
 
 #[macro_use] extern crate avrlib;
 use avrlib::*;
-pub use uart::{__vector_18, __vector_19}; // Needed for all Interrupts
-pub use timer::{__vector_14};
 use itoa::*;
 use delay::delay_ms;
 

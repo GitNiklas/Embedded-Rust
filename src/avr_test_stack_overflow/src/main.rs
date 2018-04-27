@@ -15,7 +15,6 @@ use core::ptr::{read_volatile, write_volatile};
 use avrlib::*;
 use avrlib::delay::*;
 use avrlib::itoa::itoa_u8;
-pub use uart::{__vector_18, __vector_19}; // Needed for all Interrupts
 
 pub mod std {
 	use arduino::*;

@@ -12,7 +12,6 @@ use core::ptr::{read_volatile};
 
 #[macro_use] extern crate avrlib;
 use avrlib::*;
-pub use uart::{__vector_18, __vector_19}; // Needed for all Interrupts
 
 pub mod std {
 
