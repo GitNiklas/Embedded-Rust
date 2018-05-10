@@ -1,4 +1,4 @@
-pub const FIFO_SIZE: usize = 32;
+pub const FIFO_SIZE: usize = 64;
 
 pub const EMPTY_FIFO: FiFo = FiFo { buffer: [0x00; FIFO_SIZE], read: 0,	write: 0};
 
@@ -37,13 +37,13 @@ impl FiFo {
 
 	pub fn put(&mut self, data: u8) {
 		let next = (self.write + 1) % FIFO_SIZE;
-		ensure!(next != self.read, error::FIFO_PUT_BUFFER_FULL);
+		assert!(next != self.read);
 		self.buffer[self.write] = data;
 		self.write = next;
 	}
 
 	pub fn get(&mut self) -> u8 {
-		ensure!(!self.is_empty(), error::FIFO_GET_BUFFER_EPMTY);
+		assert!(!self.is_empty());
 		let data = self.buffer[self.read];
 		self.read = (self.read + 1) % FIFO_SIZE;
 		return data;

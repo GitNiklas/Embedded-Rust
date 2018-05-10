@@ -73,16 +73,16 @@ pub extern fn main() {
 
 	let mut i = 1;
 	loop {
-		uart::put_data(&itoa_u8(i as u8));
+		uart::put_u8_arr(&itoa_u8(i as u8));
 		uart::put_str(" ");
 		
 		let time = timer::time_ms();
-		uart::put_data(&itoa_u32(time));
+		uart::put_u8_arr(&itoa_u32(time));
 		uart::put_str(" ");
 
 		calc_fib(i);
 		let f = unsafe{FIBS[i as usize]};
-		uart::put_data(&itoa_u32(f as u32));
+		uart::put_u8_arr(&itoa_u32(f as u32));
 		
 		uart::put_str("\n");
 		

@@ -54,3 +54,9 @@ macro_rules! wdt_reset {() => (unsafe{ asm!("wdr" :::: "volatile") });}
 
 #[macro_export] 
 macro_rules! unsafe_ref {($global_var:ident) => (unsafe{ &mut $global_var });}
+
+#[macro_export] 
+macro_rules! unsafe_read {($global_var:ident) => (unsafe{ $global_var });}
+
+#[macro_export] 
+macro_rules! unsafe_write {($global_var:ident = $val:expr) => (unsafe{ $global_var = $val });}

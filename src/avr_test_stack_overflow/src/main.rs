@@ -30,12 +30,12 @@ pub mod std {
 	#[no_mangle]
 	pub extern fn rust_begin_panic(_msg: (), _file: &'static str, _line: u32, _col: u32) -> ! {
 		cli!();
-		reg_sbi!(PORTB, PORTB5);
+		reg_sbi!(PORTB, PORTB5); // Set LED to on
 		wdt_reset!();
 		reg_sbi!(WDTCSR, WDCE | WDE); // Enable WDT Change
-		reg_write!(WDTCSR, WDE | WDP2 | WDP1 | WDP0); // Enable System Reset, Prescaler = 4.0s
+		reg_write!(WDTCSR, WDE | WDP2 | WDP1 | WDP0); // Enable System Reset, Prescaler = 2.0s
 		sei!();
-		loop { }
+		loop { } // Wait for restart
 	}
 }
 
@@ -85,7 +85,7 @@ pub extern fn main() {
 
 	let mut i = 0;
 	loop {		
-		uart::put_data(&itoa_u8(i));
+		uart::put_u8_arr(&itoa_u8(i));
 		uart::put_str(" ");
 		delay_ms(50);
 		consume_mem(0, i);

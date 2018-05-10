@@ -21,9 +21,9 @@ pub mod std {
 	fn restart() -> ! {
 		wdt_reset!();
 		reg_sbi!(WDTCSR, WDCE | WDE); // Enable WDT Change
-		reg_write!(WDTCSR, WDE | WDP2 | WDP1 | WDP0); // Enable System Reset, Prescaler = 4.0s
+		reg_write!(WDTCSR, WDE | WDP2 | WDP1 | WDP0); // Enable System Reset, Prescaler = 2.0s
 		sei!();
-		loop { }
+		loop { } // Wait for restart
 	}
 	
 	#[lang = "eh_personality"]
@@ -73,7 +73,7 @@ pub extern fn main() {
 		}
 		
 		if i != 0 {
-			uart::put_data(&buffer);
+			uart::put_u8_arr(&buffer);
 			i = 0;
 		}
 		

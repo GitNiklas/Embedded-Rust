@@ -32,7 +32,7 @@ pub fn put_u8(data: u8) {
 	reg_sbi!(UCSR0B, UDRIE0); // Enable Tx Interrupt
 }
 
-pub fn put_data(data: &[u8]) {
+pub fn put_u8_arr(data: &[u8]) {
 	for c in data { 
 		put_u8(*c);
 	}
@@ -56,7 +56,7 @@ pub fn received_data_cnt() -> usize {
 
 pub fn get_u8() -> u8 {
 	let rx_fifo = unsafe_ref!(RX_FIFO);
-	ensure!(!rx_fifo.is_empty(), error::UART_GET_FIFO_EMPTY);
+	assert!(!rx_fifo.is_empty());
 	return rx_fifo.get();
 }
 

@@ -67,7 +67,7 @@ pub extern fn main() {
 
 	let mut num: u8 = 0;
 	loop {
-		uart::put_data(&itoa_u8(num));
+		uart::put_u8_arr(&itoa_u8(num));
 		uart::put_str("\n");
 		num += 1;
 		delay_ms(50);		

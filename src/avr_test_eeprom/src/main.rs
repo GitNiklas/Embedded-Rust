@@ -11,8 +11,6 @@ use core::ptr::{read_volatile, write_volatile};
 
 #[macro_use] extern crate avrlib;
 use avrlib::*;
-use timer::*;
-use itoa::*;
 use delay::delay_ms;
 
 pub mod std {
@@ -30,25 +28,29 @@ pub mod std {
 	}
 }
 
-const PROJECT_NAME: &'static str = "avr_test_basic";
+const PROJECT_NAME: &'static str = "avr_test_eeprom";
+
+const EEPROM_VAL_ADDR: u16 = 0x0004;
 
 #[no_mangle]
 pub extern fn main() {
 	reg_sbi!(DDRB, DDB5); // PB5 as Output
 	uart::init();
-	timer::init();
 	sei!();
 
 	uart::put_str(PROJECT_NAME);
 	uart::put_str("\n");
-
+	
+	let mut buffer: [u8; 16] = [' ' as u8; 16];
+	
 	loop {
+		let mut i = 0;
 		while uart::received_data_cnt() > 0 {
-			uart::put_u8(uart::get_u8());
+			eeprom::write_u8(EEPROM_VAL_ADDR + i, uart::get_u8());
+			i += 1;
 		}
-		
-		let time = time_ms();
-		uart::put_u8_arr(&itoa_u32(time));
+		eeprom::read_u8_arr(EEPROM_VAL_ADDR, buffer.len(), &mut buffer);
+		uart::put_u8_arr(&buffer);
 		
 		uart::put_str("\n");
 

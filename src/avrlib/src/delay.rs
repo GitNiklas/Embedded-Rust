@@ -8,8 +8,7 @@ pub fn delay_ms(wait: u16) {
     // 20c:	b5 07       	cpc	r27, r21                     - 1 Cycle
     // 20e:	e0 f3       	brcs	.-8      	;  0x208     - 2 Cycles
 	const CYCLES_PER_INNER_ITERATION: u16 = 6; 
-	// Outer Loop Takes 8 CPU Cycles
-    const INNER_LOOP_ITERATIONS: u16 = CYCLES_PER_MS / CYCLES_PER_INNER_ITERATION - 8;
+    const INNER_LOOP_ITERATIONS: u16 = CYCLES_PER_MS / CYCLES_PER_INNER_ITERATION;
 
 	for _i in 0 .. wait {
 		for _j in 0 .. INNER_LOOP_ITERATIONS { // Wait 1 ms
