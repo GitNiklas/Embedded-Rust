@@ -1,3 +1,5 @@
+use core::ptr::read_volatile;
+
 pub const FIFO_SIZE: usize = 64;
 
 pub const EMPTY_FIFO: FiFo = FiFo { buffer: [0x00; FIFO_SIZE], read: 0,	write: 0};
@@ -24,6 +26,12 @@ impl FiFo {
 
 	pub fn is_empty(&self) -> bool {
 		return self.read == self.write;
+	}
+	
+	pub fn wait_for_data(&self) {
+		unsafe {
+			while read_volatile(&self.read) == read_volatile(&self.write) {}	
+		}
 	}
 
 	pub fn len(&self) -> usize {

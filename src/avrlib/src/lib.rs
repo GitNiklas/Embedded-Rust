@@ -10,3 +10,4 @@ pub mod uart;
 pub mod delay;
 pub mod timer;
 pub mod eeprom;
+pub mod mini_parser;

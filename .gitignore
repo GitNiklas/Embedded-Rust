@@ -21,3 +21,5 @@ src/avr_test_stack_overflow/target/
 src/avr_test_performance/target/
 
 src/avr_test_eeprom/target/
+
+src/avr_periphery/target/

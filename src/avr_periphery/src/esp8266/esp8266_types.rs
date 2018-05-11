@@ -1,0 +1,94 @@
+pub enum CWMode {
+	Unknown = 0x30,
+	Client = 0x31,
+	AccessPoint = 0x32,
+	AcPointClient = 0x33
+}
+
+pub type Baudrate = u32;
+
+pub enum DataBits {
+	_5 = 0x35,
+	_6 = 0x36,
+	_7 = 0x37,
+	_8 = 0x38
+}
+
+pub enum StopBits {
+	_1 = 0x31,
+	_1p5 = 0x32,
+	_2 = 0x33,
+}
+
+pub enum Parity {
+	None = 0x30,
+	Odd = 0x31,
+	Even = 0x32,
+}
+
+pub enum FlowControl {
+	Disabled = 0x30,
+	Rts = 0x31,
+	Cts = 0x32,
+	RtsCts = 0x33,
+}
+
+#[derive(Copy, Clone)]
+pub enum TCPHandle {
+	Multi0 = 0x30,
+	Multi1 = 0x31,
+	Multi2 = 0x32,
+	Multi3 = 0x33,
+	Multi4 = 0x34
+}
+
+pub type WiFiName = &'static str;
+pub type WiFiPW = &'static str;
+
+pub type HostName = &'static str;
+pub type PortNo = u16;
+
+pub struct AT();
+pub struct Firmware(pub AT);
+pub struct Reset(pub AT);
+pub struct Echoing(pub AT, pub bool);
+pub struct MultiConnections(pub AT);
+pub struct MultiConnectionsSet(pub MultiConnections, pub bool);
+pub struct UARTDef(pub AT);
+pub struct UARTDefSet(pub UARTDef, pub Baudrate, pub DataBits, pub StopBits, pub Parity, pub FlowControl);
+pub struct OPMode(pub AT);
+pub struct OPModeSet(pub OPMode, pub CWMode);
+
+pub struct WiFi(pub AT);
+pub struct WiFiScan(pub WiFi);
+pub struct WiFiConnect(pub WiFi);
+pub struct WiFiConnectSet(pub WiFiConnect, pub WiFiName, pub WiFiPW);
+pub struct WiFiDisconnect(pub WiFi);
+
+pub struct IPAddress(pub AT);
+
+pub struct TCP(pub AT);
+pub struct TCPGetState(pub TCP);
+pub struct TCPOpen(pub TCP);
+pub struct TCPOpenSet(pub TCPOpen, pub TCPHandle, pub HostName, pub PortNo);
+pub struct TCPClose(pub TCP);
+pub struct TCPCloseSet(pub TCPClose, pub TCPHandle);
+
+pub struct ReadOK();
+pub struct WaitResetDone();
+pub struct WaitDisconnectDone();
+pub struct ReadOPMode();
+pub struct WaitTCPOpen(pub TCPHandle);
+
+pub struct TCPConnection(pub TCPHandle);
+
+impl From<u8> for CWMode {
+    fn from(val: u8) -> CWMode {
+    	return match val {
+    		0x31 => CWMode::Client,
+    		0x32 => CWMode::AccessPoint,
+    		0x33 => CWMode::AcPointClient,
+    		_ => CWMode::Unknown
+    	}
+    }
+}
