@@ -1,0 +1,113 @@
+AT\r\r\n
+\r\n
+OK\r\n
+
+
+AT+RST\r\r\n
+\r\n
+OK\r\n
+\r\n
+ ets Jan  8 2013,rst cause:1, boot mode:(3,0)\r\n
+\r\n
+load 0x40100000, len 1856, room 16 \r\n
+tail 0\r\n
+chksum 0x63\r\n
+load 0x3ffe8000, len 776, room 8 \r\n
+tail 0\r\n
+chksum 0x02\r\n
+load 0x3ffe8310, len 552, room 8 \r\n
+tail 0\r\n
+chksum 0x79\r\n
+csum 0x79\r\n
+\r\n
+2nd boot version : 1.5\r\n
+  SPI Speed      : 40MHz\r\n
+  SPI Mode       : DIO\r\n
+  SPI Flash Size & Map: 8Mbit(512KB+512KB)\r\n
+jump to run user1 @ 1000\r\n
+\r\n
+...
+Ai-Thinker Technology Co. Ltd.\r\n
+\r\n
+ready\r\n
+
+
+
+AT+CWMODE?\r\r\n
++CWMODE:1\r\n
+\r\n
+OK\r\n
+
+
+AT+CWMODE=1\r\r\n
+\r\n
+OK\r\n
+
+
+// List WiFi
+AT+CWLAP\r\r\n
++CWLAP:(3,"HITRON-D7C0",-90,"f0:f2:49:14:d7:c8",1,-51,0)\r\n
++CWLAP:(3,"ML-WLAN",-88,"a4:2b:b0:b5:00:20",9,-42,0)\r\n
++CWLAP:(3,"AndroidAP",-63,"4e:66:41:0a:ba:40",11,-47,0)\r\n
++CWLAP:(4,"FRITZ!Box Fon WLAN 7360",-74,"34:81:c4:ed:05:28",11,-37,0)\r\n
++CWLAP:(4,"Service-TL-52",-83,"00:1c:28:68:58:8f",11,-39,0)\r\n
+\r\n
+OK\r\n
+
+
+// Connect WiFi - Success
+AT+CWJAP="AndroidAP","********"\r\r\n
+WIFI CONNECTED\r\n
+WIFI GOT IP\r\n
+\r\n
+OK\r\n
+
+// Connect WiFi - Fail
+AT+CWJAP="AndroidAP","urpa1436"\r\n
+WIFI DISCONNECT\r\n
++CWJAP:3\r\n
+\r\n
+FAIL\r\n
+
+// Get WiFi
+AT+CWJAP?\r\r\n
++CWJAP:"AndroidAP","4e:66:41:0a:ba:40",11,-41\r\n
+\r\n
+OK\r\n
+
+// Leave WiFi
+AT+CWQAP\r\r\n
+\r\n
+OK\r\n
+WIFI DISCONNECT\r\n
+
+// Enable Multi-Connections
+AT+CIPMUX=1\r\r\n
+\r\n
+OK\r\n
+
+// Open TCP Connection - Success
+AT+CIPSTART=1,"TCP","www.fh-wedel.de",80\r\r\n
+1,CONNECT\r\n
+\r\n
+OK\r\n
+
+// Open TCP Connection - Fail
+AT+CIPSTART=1,"TCP","www.fh-wed2el.de",80\r\r\n
+DNS Fail\r\n
+\r\n
+ERROR\r\n
+
+
+// Close TCP Connection
+AT+CIPCLOSE=1\r\r\n
+1,CLOSED\r\n
+\r\n
+OK\r\n
+
+// Get TCP Status
+AT+CIPSTATUS\r\r\n
+STATUS:3\r\n
++CIPSTATUS:1,"TCP","213.39.232.206",80,14588,0\r\n
+\r\n
+OK\r\n

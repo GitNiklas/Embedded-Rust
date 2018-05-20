@@ -42,11 +42,21 @@ pub enum TCPHandle {
 	Multi4 = 0x34
 }
 
+pub enum TCPStatus {
+	Unknown = 0x30,
+	ConnectedHasIP = 0x32,
+	OpenTCPConn = 0x33,
+	TCPDisconnected = 0x34,
+	NoWiFiConnected = 0x35
+}
+
 pub type WiFiName = &'static str;
 pub type WiFiPW = &'static str;
 
 pub type HostName = &'static str;
 pub type PortNo = u16;
+
+pub type DataLen = u8;
 
 pub struct AT();
 pub struct Firmware(pub AT);
@@ -73,13 +83,18 @@ pub struct TCPOpen(pub TCP);
 pub struct TCPOpenSet(pub TCPOpen, pub TCPHandle, pub HostName, pub PortNo);
 pub struct TCPClose(pub TCP);
 pub struct TCPCloseSet(pub TCPClose, pub TCPHandle);
+pub struct TCPSendData(pub TCP);
+pub struct TCPSendDataSet(pub TCPSendData, pub TCPHandle, pub DataLen);
 
 pub struct ReadOK();
 pub struct WaitResetDone();
 pub struct WaitDisconnectDone();
 pub struct ReadOPMode();
+pub struct ReadTCPStatus();
 pub struct WaitTCPOpen(pub TCPHandle);
+pub struct ReadUntil();
 
+#[derive(Copy, Clone)]
 pub struct TCPConnection(pub TCPHandle);
 
 impl From<u8> for CWMode {
@@ -89,6 +104,18 @@ impl From<u8> for CWMode {
     		0x32 => CWMode::AccessPoint,
     		0x33 => CWMode::AcPointClient,
     		_ => CWMode::Unknown
+    	}
+    }
+}
+
+impl From<u8> for TCPStatus {
+    fn from(val: u8) -> TCPStatus {
+    	return match val {
+    		0x32 => TCPStatus::ConnectedHasIP,
+    		0x33 => TCPStatus::OpenTCPConn,
+    		0x34 => TCPStatus::TCPDisconnected,
+    		0x35 => TCPStatus::NoWiFiConnected,
+    		_ => TCPStatus::Unknown
     	}
     }
 }

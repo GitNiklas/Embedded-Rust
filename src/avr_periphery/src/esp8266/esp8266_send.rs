@@ -325,14 +325,19 @@ impl TCP {
 	pub fn close(self) -> TCPClose {
 		TCPClose(self)
 	}
+	
+	pub fn send_data(self) -> TCPSendData {
+		TCPSendData(self)
+	}
 }
 
 impl TCPGetState {		
-	pub fn send(self) -> ReadOK {
+	pub fn send(self) -> ReadTCPStatus {
 		let TCPGetState(prev_cmd) = self;
 		prev_cmd.send_cmd();
 		uart::put_str("STATUS");
-		cmd_end()
+		cmd_end();
+		ReadTCPStatus()
     }
 }
 
@@ -409,7 +414,55 @@ impl TCPCloseSet {
 	}
 }
 
+impl TCPSendData {
+	fn send_cmd(self) {
+		let TCPSendData(prev_cmd) = self;
+		prev_cmd.send_cmd();
+		uart::put_str("SEND");
+	}
+	
+	pub fn set(self) -> TCPSendDataSet {
+		TCPSendDataSet(self, TCPHandle::Multi0, 0)
+	}
+}
+
+impl TCPSendDataSet {	
+	pub fn send(self) {
+		let TCPSendDataSet(prev_cmd, handle, len) = self;
+		prev_cmd.send_cmd();
+		set();
+		u8_param(handle as u8);
+		sep();
+		let mut buffer: [u8; 3] = [0x00; 3];
+		itoa_send!(len, buffer);
+		cmd_end();
+    }
+	
+	pub fn tcp_handle(self, handle: TCPHandle) -> Self {
+		let TCPSendDataSet(prev_cmd, _, len) = self;
+		TCPSendDataSet(prev_cmd, handle, len)
+	}
+	
+	pub fn len(self, len: DataLen) -> Self {
+		let TCPSendDataSet(prev_cmd, handle, _) = self;
+		TCPSendDataSet(prev_cmd, handle, len)
+	}
+}
+
 impl TCPConnection {
+	pub fn send_str(self, data: &str) -> Self {
+		let TCPConnection(handle) = self;
+		at().tcp().send_data().set().tcp_handle(handle).len(data.len() as u8 + 1).send();
+		uart::put_str(data);
+		cmd_end();
+		self
+	}
+	
+	pub fn read_until(self, pat: &[u8]) -> Self {
+		ReadUntil().read(pat);
+		self
+	}
+	
 	pub fn close(self) -> ReadOK {
 		let TCPConnection(handle) = self;
 		at().tcp().close().set().tcp_handle(handle).send()

@@ -1,0 +1,60 @@
+<HtermSequenceFile>
+    <ItemList>
+        <SequenceItem name="Ping (AT)">
+            <description></description>
+            <sequence value="h[41] h[54] h[0D] h[0A]" />
+        </SequenceItem>
+        <SequenceItem name="Reset">
+            <description></description>
+            <sequence value="h[41] h[54] h[2B] h[52] h[53] h[54] h[0D] h[0A]" />
+        </SequenceItem>
+        <SequenceItem name="Get CWMode">
+            <description></description>
+            <sequence value="h[41] h[54] h[2B] h[43] h[57] h[4D] h[4F] h[44] h[45] h[3F] h[0D] h[0A]" />
+        </SequenceItem>
+        <SequenceItem name="Set CWMode: Client ">
+            <description></description>
+            <sequence value="h[41] h[54] h[2B] h[43] h[57] h[4D] h[4F] h[44] h[45] h[3D] h[31] h[0D] h[0A]" />
+        </SequenceItem>
+        <SequenceItem name="List WiFi Networks">
+            <description></description>
+            <sequence value="h[41] h[54] h[2B] h[43] h[57] h[4C] h[41] h[50] h[0D] h[0A]" />
+        </SequenceItem>
+        <SequenceItem name="Connect to AndroidAP">
+            <description></description>
+            <sequence value="h[41] h[54] h[2B] h[43] h[57] h[4A] h[41] h[50] h[3D] h[22] h[41] h[6E] h[64] h[72] h[6F] h[69] h[64] h[41] h[50] h[22] h[2C] h[22] h[75] h[72] h[70] h[61] h[31] h[34] h[33] h[36] h[22] h[0D] h[0A]" />
+        </SequenceItem>
+        <SequenceItem name="Disconnect from AP">
+            <description></description>
+            <sequence value="h[41] h[54] h[2B] h[43] h[57] h[51] h[41] h[50] h[0D] h[0A]" />
+        </SequenceItem>
+        <SequenceItem name="Get Connected AP">
+            <description></description>
+            <sequence value="h[41] h[54] h[2B] h[43] h[57] h[4A] h[41] h[50] h[3F] h[0D] h[0A]" />
+        </SequenceItem>
+        <SequenceItem name="Enable Multi-Connections">
+            <description></description>
+            <sequence value="h[41] h[54] h[2B] h[43] h[49] h[50] h[4D] h[55] h[58] h[3D] h[31] h[0D] h[0A]" />
+        </SequenceItem>
+        <SequenceItem name="Open TCP Connection (FH Wedel)">
+            <description></description>
+            <sequence value="h[41] h[54] h[2B] h[43] h[49] h[50] h[53] h[54] h[41] h[52] h[54] h[3D] h[31] h[2C] h[22] h[54] h[43] h[50] h[22] h[2C] h[22] h[77] h[77] h[77] h[2E] h[66] h[68] h[2D] h[77] h[65] h[64] h[65] h[6C] h[2E] h[64] h[65] h[22] h[2C] h[38] h[30] h[0D] h[0A]" />
+        </SequenceItem>
+        <SequenceItem name="Close TCP Connection">
+            <description></description>
+            <sequence value="h[41] h[54] h[2B] h[43] h[49] h[50] h[43] h[4C] h[4F] h[53] h[45] h[3D] h[31] h[0D] h[0A]" />
+        </SequenceItem>
+        <SequenceItem name="Get TCP Status">
+            <description></description>
+            <sequence value="h[41] h[54] h[2B] h[43] h[49] h[50] h[53] h[54] h[41] h[54] h[55] h[53] h[0D] h[0A]" />
+        </SequenceItem>
+        <SequenceItem name="Send TCP 38 Bytes">
+            <description></description>
+            <sequence value="h[41] h[54] h[2B] h[43] h[49] h[50] h[53] h[45] h[4E] h[44] h[3D] h[31] h[2C] h[33] h[38] h[0D] h[0A]" />
+        </SequenceItem>
+        <SequenceItem name="HTTP GET">
+            <description></description>
+            <sequence value="h[47] h[45] h[54] h[20] h[2F] h[20] h[48] h[54] h[54] h[50] h[2F] h[31] h[2E] h[31] h[0A] h[48] h[6F] h[73] h[74] h[3A] h[20] h[77] h[77] h[77] h[2E] h[66] h[68] h[2D] h[77] h[65] h[64] h[65] h[6C] h[2E] h[64] h[65] h[0A] h[0A]" />
+        </SequenceItem>
+    </ItemList>
+</HtermSequenceFile>

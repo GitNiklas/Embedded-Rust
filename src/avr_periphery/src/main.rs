@@ -16,6 +16,10 @@ use core::ptr::{read_volatile, write_volatile};
 use avrlib::*;
 use delay::delay_ms;
 
+mod ds18b20;
+use ds18b20::onewire as onewire;
+use_timer2_compa_vect!(onewire);
+
 mod esp8266;
 use esp8266::*;
 
@@ -58,7 +62,7 @@ const HOST: &'static str = "www.fh-wedel.de";
 const PORT: u16 = 80;
 
 fn stop() {
-	reg_sbi!(PORTB, PORTB5); // Set LED to on
+	//reg_sbi!(PORTB, PORTB5); // Set LED to on
 	loop {}
 }
 
@@ -76,7 +80,12 @@ fn test_esp() {
 		esp8266::at().wifi().connect().query().read_until_ok();
 		let open_tcp = esp8266::at().tcp().open().set().tcp_handle(TCPHandle::Multi1).hostname(HOST).port(PORT).send().wait_tcp_open();
 		if let Ok(conn) = open_tcp {
-			delay_ms(2000);
+			delay_ms(500);
+			esp8266::at().tcp().get_state().send().read_tcp_status();
+			delay_ms(500);
+			conn.send_str("GET / HTTP/1.1\nHost: www.fh-wedel.de\n\n");
+			conn.read_until(b"CLOSED\r\n");
+			delay_ms(500);
 			conn.close().read_until_ok();
 		}
 		else {
@@ -98,11 +107,14 @@ pub extern fn main() {
 	reg_cbi!(PORTB, PORTB5);
 	uart::init();
 	timer::init();
+	ds18b20::init();
 	sei!();
 	
 	test_esp();
 
 	loop {
+		let temp = ds18b20::read_temperature();
+		ds18b20::print_temperature(&temp);
 		delay_ms(1000);
 	}
 }
