@@ -55,22 +55,17 @@ fn wdt_off() {
 	sei!();
 }
 
-const WIFI_NAME: &'static str = "AndroidAP";
-const WIFI_PW: &'static str = "urpa1436";
+const WIFI_NAME: &[u8] = b"AndroidAP";
+const WIFI_PW: &[u8] = b"urpa1436";
 
-const HOST: &'static str = "www.fh-wedel.de";
-const PORT: u16 = 80;
-
-fn stop() {
-	//reg_sbi!(PORTB, PORTB5); // Set LED to on
-	loop {}
-}
+const HOST: &[u8]= b"192.168.43.6";
+const PORT: u16 = 88;
 
 fn test_esp() {
 	esp8266::at().send().read_until_ok();
 	esp8266::at().reset().send().wait_for_reset();
 
-	let mode = esp8266::at().op_mode().query().get_mode();
+	let mode = esp8266::at().op_mode().query().read_mode();
 	esp8266::at().op_mode().set().cw_mode(CWMode::Client).send().read_until_ok();
 	esp8266::at().multi_connections().set().enabled(true).send().read_until_ok();
 	esp8266::at().wifi().scan().send().read_until_ok();
@@ -79,23 +74,17 @@ fn test_esp() {
 	if let Ok(_) = connect_wifi {
 		esp8266::at().wifi().connect().query().read_until_ok();
 		let open_tcp = esp8266::at().tcp().open().set().tcp_handle(TCPHandle::Multi1).hostname(HOST).port(PORT).send().wait_tcp_open();
+		esp8266::at().ip_address().send().read_until_ok();
 		if let Ok(conn) = open_tcp {
 			delay_ms(500);
 			esp8266::at().tcp().get_state().send().read_tcp_status();
 			delay_ms(500);
-			conn.send_str("GET / HTTP/1.1\nHost: www.fh-wedel.de\n\n");
+			conn.send_str(b"GET / HTTP/1.1\nHost: www.fh-wedel.de\n\n");
 			conn.read_until(b"CLOSED\r\n");
 			delay_ms(500);
-			conn.close().read_until_ok();
-		}
-		else {
-			stop();
 		}
 		delay_ms(3000);
 		esp8266::at().wifi().disconnect().send().wait_for_disconnect();
-	}
-	else {
-		stop();
 	}
 }
 
@@ -113,8 +102,8 @@ pub extern fn main() {
 	test_esp();
 
 	loop {
-		let temp = ds18b20::read_temperature();
-		ds18b20::print_temperature(&temp);
+		//let temp = ds18b20::read_temperature();
+		//ds18b20::print_temperature(&temp);
 		delay_ms(1000);
 	}
 }

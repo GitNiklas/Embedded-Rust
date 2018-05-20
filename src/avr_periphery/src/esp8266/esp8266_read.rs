@@ -50,7 +50,7 @@ impl WaitDisconnectDone {
 }
 
 impl ReadOPMode {
-	pub fn get_mode(self) -> Result<CWMode, ()> {
+	pub fn read_mode(self) -> Result<CWMode, ()> {
 		let mut mode: u8 = 0;
 		if mini_parser::start(get_byte)
 			.read_until(b"+CWMODE:") // AT+CWMODE?\r\r\n+CWMODE:
@@ -100,7 +100,8 @@ impl WaitTCPOpen {
 }
 
 impl ReadUntil {
-	pub fn read(self, pat: &[u8]) {
+	pub fn read_answer(self) {
+		let ReadUntil(pat) = self;
 		mini_parser::start(get_byte).read_until(pat);
 	}
 }

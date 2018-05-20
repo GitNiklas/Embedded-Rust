@@ -50,10 +50,10 @@ pub enum TCPStatus {
 	NoWiFiConnected = 0x35
 }
 
-pub type WiFiName = &'static str;
-pub type WiFiPW = &'static str;
+pub type WiFiName = &'static [u8];
+pub type WiFiPW = &'static [u8];
 
-pub type HostName = &'static str;
+pub type HostName = &'static [u8];
 pub type PortNo = u16;
 
 pub type DataLen = u8;
@@ -92,7 +92,7 @@ pub struct WaitDisconnectDone();
 pub struct ReadOPMode();
 pub struct ReadTCPStatus();
 pub struct WaitTCPOpen(pub TCPHandle);
-pub struct ReadUntil();
+pub struct ReadUntil(pub &'static [u8]);
 
 #[derive(Copy, Clone)]
 pub struct TCPConnection(pub TCPHandle);

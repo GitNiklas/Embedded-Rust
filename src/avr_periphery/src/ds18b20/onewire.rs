@@ -1,7 +1,5 @@
 use arduino::*;
 use core::ptr::{write_volatile, read_volatile};
-use avrlib::delay::delay_ms;
-use avrlib::uart;
 
 const F_CPU: u32 = 16_000_000; 
 

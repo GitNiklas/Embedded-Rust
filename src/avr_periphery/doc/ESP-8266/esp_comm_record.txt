@@ -56,7 +56,7 @@ OK\r\n
 
 
 // Connect WiFi - Success
-AT+CWJAP="AndroidAP","********"\r\r\n
+AT+CWJAP="AndroidAP","urpa1436"\r\r\n
 WIFI CONNECTED\r\n
 WIFI GOT IP\r\n
 \r\n
@@ -80,6 +80,14 @@ AT+CWQAP\r\r\n
 \r\n
 OK\r\n
 WIFI DISCONNECT\r\n
+
+// Get IP Address
+AT+CIFSR\r\r\n
++CIFSR:STAIP,"192.168.43.88"\r\n
++CIFSR:STAMAC,"60:01:94:4c:87:41"\r\n
+\r\n
+OK\r\n
+
 
 // Enable Multi-Connections
 AT+CIPMUX=1\r\r\n
@@ -111,3 +119,39 @@ STATUS:3\r\n
 +CIPSTATUS:1,"TCP","213.39.232.206",80,14588,0\r\n
 \r\n
 OK\r\n
+
+// Send 38 Bytes
+AT+CIPSEND=1,38\r\r\n
+\r\n
+OK\r\n
+>
+
+// Send HTTP GET: 
+//   GET / HTTP/1.1\n
+//   Host: www.fh-wedel.de\n
+//   \n
+Recv 38 bytes\r\n
+\r\n
+SEND OK\r\n
+\r\n
++IPD,1,1360:HTTP/1.1 200 OK\r\n
+Date: Sun, 20 May 2018 15:14:42 GMT\r\n
+Server: Apache\r\n
+Set-Cookie: fe_typo_user=bd2d5739204c7c26f579c970bb26fca8; path=/\r\n
+Vary: Accept-Encoding\r\n
+Transfer-Encoding: chunked\r\n
+Content-Type: text/html; charset=utf-8\r\n
+\r\n
+9b8a\r\n
+<?xml version="1.0" encoding="utf-8"?>\n
+<!DOCTYPE html\n
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"\n
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">\n
+<html xml:lang="de" lang="de" xmlns="http://www.w3.org/1999/xhtml">\n
+<head>\n
+...
+</body>\n
+</html>\r\n
+0\r\n
+\r\n
+1,CLOSED\r\n

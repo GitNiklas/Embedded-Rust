@@ -56,7 +56,7 @@ pub fn read_temperature() -> Temperature {
 	let msb = scratchpad[1];
 	
 	let int_part = (msb & 0x07) << 4 | lsb >> 4;	
-	let is_negative = (msb & 0xF0 != 0);
+	let is_negative = (msb & 0xF0) != 0;
 	let frac_part = lsb & 0x0F;
 
 	return Temperature {

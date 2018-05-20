@@ -32,6 +32,10 @@
             <description></description>
             <sequence value="h[41] h[54] h[2B] h[43] h[57] h[4A] h[41] h[50] h[3F] h[0D] h[0A]" />
         </SequenceItem>
+        <SequenceItem name="Get IP Address">
+            <description></description>
+            <sequence value="h[41] h[54] h[2B] h[43] h[49] h[46] h[53] h[52] h[0D] h[0A]" />
+        </SequenceItem>
         <SequenceItem name="Enable Multi-Connections">
             <description></description>
             <sequence value="h[41] h[54] h[2B] h[43] h[49] h[50] h[4D] h[55] h[58] h[3D] h[31] h[0D] h[0A]" />
