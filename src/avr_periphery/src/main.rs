@@ -58,14 +58,13 @@ fn wdt_off() {
 const WIFI_NAME: &[u8] = b"AndroidAP";
 const WIFI_PW: &[u8] = b"urpa1436";
 
-const HOST: &[u8]= b"192.168.43.6";
-const PORT: u16 = 88;
+const HOST: &[u8]= b"192.168.43.47";
+const PORT: u16 = 1234;
 
-fn test_esp() {
+fn open_server_connection() -> Result<TCPConnection, ()> {
 	esp8266::at().send().read_until_ok();
 	esp8266::at().reset().send().wait_for_reset();
 
-	let mode = esp8266::at().op_mode().query().read_mode();
 	esp8266::at().op_mode().set().cw_mode(CWMode::Client).send().read_until_ok();
 	esp8266::at().multi_connections().set().enabled(true).send().read_until_ok();
 	esp8266::at().wifi().scan().send().read_until_ok();
@@ -73,19 +72,17 @@ fn test_esp() {
 	let connect_wifi = esp8266::at().wifi().connect().set().name(WIFI_NAME).pw(WIFI_PW).send().read_until_ok();
 	if let Ok(_) = connect_wifi {
 		esp8266::at().wifi().connect().query().read_until_ok();
-		let open_tcp = esp8266::at().tcp().open().set().tcp_handle(TCPHandle::Multi1).hostname(HOST).port(PORT).send().wait_tcp_open();
-		esp8266::at().ip_address().send().read_until_ok();
-		if let Ok(conn) = open_tcp {
-			delay_ms(500);
-			esp8266::at().tcp().get_state().send().read_tcp_status();
-			delay_ms(500);
-			conn.send_str(b"GET / HTTP/1.1\nHost: www.fh-wedel.de\n\n");
-			conn.read_until(b"CLOSED\r\n");
-			delay_ms(500);
-		}
-		delay_ms(3000);
-		esp8266::at().wifi().disconnect().send().wait_for_disconnect();
+		return esp8266::at().tcp().open().set().tcp_handle(TCPHandle::Multi1).hostname(HOST).port(PORT).send().wait_tcp_open();
 	}
+	else {
+		return Err(());
+	}
+}
+
+fn close_server_connection(conn: TCPConnection) {
+	conn.close().read_until_ok();
+	delay_ms(1000);
+	esp8266::at().wifi().disconnect().send().wait_for_disconnect();
 }
 
 
@@ -99,12 +96,21 @@ pub extern fn main() {
 	ds18b20::init();
 	sei!();
 	
-	test_esp();
+	if let Ok(conn) = open_server_connection() {
+		// Send Temperature 
+		for _i in 0.. 15 {
+			let temp = ds18b20::read_temperature();
+			conn.send_str(b"Temperature: ").read_until_ok();
+			ds18b20::read_temperature();
+			conn.send_str(&ds18b20::temperature_to_str(&temp)).read_until_ok();
+			conn.send_str(b"\r\n").read_until_ok();
+			delay_ms(2000);
+		}		
+		close_server_connection(conn);
+	}
 
 	loop {
-		//let temp = ds18b20::read_temperature();
-		//ds18b20::print_temperature(&temp);
-		delay_ms(1000);
+		delay_ms(100);
 	}
 }
 

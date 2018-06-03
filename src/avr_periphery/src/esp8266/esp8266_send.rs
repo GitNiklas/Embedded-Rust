@@ -365,7 +365,7 @@ impl TCPOpenSet {
 		str_param(host);
 		sep();
 		let mut buffer: [u8; 5] = [0; 5];
-		itoa_send!(port as u8, buffer);
+		itoa_send!(port, buffer);
 		cmd_end();
 		WaitTCPOpen(handle)
     }
@@ -451,12 +451,11 @@ impl TCPSendDataSet {
 }
 
 impl TCPConnection {
-	pub fn send_str(self, data: &[u8]) -> Self {
+	pub fn send_str(self, data: &[u8]) -> ReadOK {
 		let TCPConnection(handle) = self;
 		at().tcp().send_data().set().tcp_handle(handle).len(data.len() as u8).send().read_answer();
 		uart::put_u8_arr(data);
-		cmd_end();
-		self
+		cmd_end()
 	}
 	
 	pub fn read_until(self, pat: &'static [u8]) -> Self {

@@ -66,6 +66,20 @@ pub fn read_temperature() -> Temperature {
 	};
 }
 
+pub fn temperature_to_str(temp: &Temperature) -> [u8; 9] {
+	let mut res : [u8; 9] = *b"+III.FFFF";
+	res[0] = if temp.is_negative {'-'} else {' '} as u8;
+	let buf_int = itoa::itoa_u8(temp.int_part);
+	for i in 0 .. 3 {
+		res[i+1] = buf_int[i];
+	}
+	res[4] = '.' as u8;
+	for i in 0 .. 4 {
+		res[5+i] = FRAC_LOOKUP_TABLE[temp.frac_part as usize][i];
+	} 
+	return res;
+}
+
 pub fn print_temperature(temp: &Temperature) {
 	uart::put_u8( if temp.is_negative {'-'} else {' '} as u8);
 	uart::put_u8_arr(&itoa::itoa_u8(temp.int_part));
