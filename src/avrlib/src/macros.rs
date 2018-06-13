@@ -60,3 +60,6 @@ macro_rules! unsafe_read {($global_var:ident) => (unsafe{ $global_var });}
 
 #[macro_export] 
 macro_rules! unsafe_write {($global_var:ident = $val:expr) => (unsafe{ $global_var = $val });}
+
+#[macro_export] 
+macro_rules! assert{($x:expr) => (if !$x {panic!()});}

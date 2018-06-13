@@ -8,17 +8,18 @@ macro_rules! itoa_send {
 	});
 }
 
+const CHAR_EXT: u8 = '+' as u8;
 const CHAR_QUERY: u8 = '?' as u8;
 const CHAR_SET: u8 = '=' as u8;
 const CHAR_SEP: u8 = ',' as u8;
 const CHAR_QUOTE: u8 = '"' as u8;
 const DUMMY_STR: &[u8] = b"";
 
-pub fn at() -> AT {
-	AT()
+pub fn at() -> ATBase {
+	ATBase()
 }
 
-impl AT {	
+impl ATBase {	
 	fn send_cmd(self) {
 		uart::put_str("AT");
 	}
@@ -28,16 +29,38 @@ impl AT {
 		cmd_end()
     }
     
+	pub fn echo(self, enabled: bool) -> Echoing {
+		Echoing(self, enabled)
+	}
+    	
+    pub fn ext(self) -> ATExt {
+    	ATExt(self)
+    }
+}
+
+impl Echoing {
+    pub fn send(self) -> ReadOK {
+		let Echoing(prev_cmd, ena) = self;
+		prev_cmd.send_cmd();
+		uart::put_u8('E' as u8);
+		uart::put_u8(if ena {'1'} else {'0'} as u8);
+		cmd_end()
+    }
+}
+
+impl ATExt {
+	fn send_cmd(self) {
+		let ATExt(prev_cmd) = self;
+		prev_cmd.send_cmd();
+		uart::put_u8(CHAR_EXT);
+	}
+		
 	pub fn firmware(self) -> Firmware {
 		Firmware(self)
 	}
-    
+	
 	pub fn reset(self) -> Reset {
 		Reset(self)
-	}
-	
-	pub fn echo(self, enabled: bool) -> Echoing {
-		Echoing(self, enabled)
 	}
 	
 	pub fn multi_connections(self) -> MultiConnections {
@@ -46,10 +69,6 @@ impl AT {
 	
 	pub fn uart_def(self) -> UARTDef {
 		UARTDef(self)
-	}
-	
-	pub fn op_mode(self) -> OPMode {
-		OPMode(self)
 	}
 	
 	pub fn wifi(self) -> WiFi {
@@ -69,7 +88,7 @@ impl Firmware {
     pub fn send(self) -> ReadOK {
 		let Firmware(prev_cmd) = self;
 		prev_cmd.send_cmd();
-		uart::put_u8_arr(b"+GMR");
+		uart::put_u8_arr(b"GMR");
 		cmd_end()
     }
 }
@@ -78,19 +97,9 @@ impl Reset {
     pub fn send(self) -> WaitResetDone {
 		let Reset(prev_cmd) = self;
 		prev_cmd.send_cmd();
-		uart::put_u8_arr(b"+RST");
+		uart::put_u8_arr(b"RST");
 		cmd_end();
 		WaitResetDone()
-    }
-}
-
-impl Echoing {
-    pub fn send(self) -> ReadOK {
-		let Echoing(prev_cmd, ena) = self;
-		prev_cmd.send_cmd();
-		uart::put_u8('E' as u8);
-		uart::put_u8(if ena {'1'} else {'0'} as u8);
-		cmd_end()
     }
 }
 
@@ -98,7 +107,7 @@ impl MultiConnections {
 	fn send_cmd(self) {
 		let MultiConnections(prev_cmd) = self;
 		prev_cmd.send_cmd();
-		uart::put_u8_arr(b"+CIPMUX");
+		uart::put_u8_arr(b"CIPMUX");
 	}
 	
 	pub fn set(self) -> MultiConnectionsSet {
@@ -125,7 +134,7 @@ impl UARTDef {
 	fn send_cmd(self) {
 		let UARTDef(prev_cmd) = self;
 		prev_cmd.send_cmd();
-		uart::put_u8_arr(b"+UART_DEF");
+		uart::put_u8_arr(b"UART_DEF");
 	}
 	
 	pub fn set(self) -> UARTDefSet {
@@ -184,52 +193,23 @@ impl UARTDefSet {
 	}
 }
 
-impl OPMode {	
-	fn send_cmd(self) {
-		let OPMode(prev_cmd) = self;
-		prev_cmd.send_cmd();
-		uart::put_u8_arr(b"+CWMODE");
-	}
-	
-	pub fn query(self) -> ReadOPMode {
-		self.send_cmd();
-		query();
-		ReadOPMode()
-	}
-	
-	pub fn set(self) -> OPModeSet {
-		OPModeSet(self, CWMode::Client)
-	}
-}
-
-impl OPModeSet {	
-	pub fn send(self)-> ReadOK {
-		let OPModeSet(prev_cmd, cw_mode) = self;
-		prev_cmd.send_cmd();
-		uart::put_u8(CHAR_SET);
-		u8_param(cw_mode as u8);
-		cmd_end()
-    }
-	    
-	pub fn cw_mode(self, cw_mode: CWMode) -> Self {
-		let OPModeSet(prev_cmd, _) = self;
-		OPModeSet(prev_cmd, cw_mode)
-	}
-}
-
 impl WiFi {	
 	fn send_cmd(self) {
 		let WiFi(prev_cmd) = self;
 		prev_cmd.send_cmd();
-		uart::put_u8_arr(b"+CW");
+		uart::put_u8_arr(b"CW");
+	}
+	
+	pub fn mode(self) -> WiFiMode {
+		WiFiMode(self)
 	}
 	
 	pub fn scan(self) -> WiFiScan {
 		WiFiScan(self)
 	}
 	
-	pub fn connect(self) -> WiFiConnect {
-		WiFiConnect(self)
+	pub fn connection(self) -> WiFiConnection {
+		WiFiConnection(self)
 	}
 	
 	pub fn disconnect(self) -> WiFiDisconnect {
@@ -237,6 +217,46 @@ impl WiFi {
 	}
 }
 
+impl WiFiMode {	
+	fn send_cmd(self) {
+		let WiFiMode(prev_cmd) = self;
+		prev_cmd.send_cmd();
+		uart::put_u8_arr(b"MODE");
+	}
+	
+	pub fn query(self) -> WiFiModeQuery {
+		WiFiModeQuery(self)
+	}
+	
+	pub fn set(self) -> WiFiModeSet {
+		WiFiModeSet(self, CWMode::Client)
+	}
+}
+
+impl WiFiModeQuery {
+	pub fn send(self)-> ReadWiFiMode {
+		let WiFiModeQuery(prev_cmd) = self;
+		prev_cmd.send_cmd();
+		uart::put_u8(CHAR_QUERY);
+		cmd_end();
+		ReadWiFiMode()
+    }
+}
+
+impl WiFiModeSet {	
+	pub fn send(self)-> ReadOK {
+		let WiFiModeSet(prev_cmd, cw_mode) = self;
+		prev_cmd.send_cmd();
+		uart::put_u8(CHAR_SET);
+		u8_param(cw_mode as u8);
+		cmd_end()
+    }
+	    
+	pub fn cw_mode(self, cw_mode: CWMode) -> Self {
+		let WiFiModeSet(prev_cmd, _) = self;
+		WiFiModeSet(prev_cmd, cw_mode)
+	}
+}
 
 impl WiFiScan {		
 	pub fn send(self) -> ReadOK {
@@ -248,27 +268,35 @@ impl WiFiScan {
     }
 }
 
-impl WiFiConnect {	
+impl WiFiConnection {	
 	fn send_cmd(self) {
-		let WiFiConnect(prev_cmd) = self;
+		let WiFiConnection(prev_cmd) = self;
 		prev_cmd.send_cmd();
 		uart::put_u8_arr(b"JAP");
 	}
 	
-	pub fn query(self) -> ReadOK {
-		self.send_cmd();
-		query();
-		ReadOK() 
+	pub fn query(self) -> WiFiConnectionQuery {
+		WiFiConnectionQuery(self) 
 	}
 	
-	pub fn set(self) -> WiFiConnectSet {
-		WiFiConnectSet(self, &DUMMY_STR, &DUMMY_STR)
+	pub fn set(self) -> WiFiConnectionSet {
+		WiFiConnectionSet(self, &DUMMY_STR, &DUMMY_STR)
 	}
 }
 
-impl WiFiConnectSet {	
+impl WiFiConnectionQuery {	
+	pub fn send(self)-> ReadOK {
+		let WiFiConnectionQuery(prev_cmd) = self;
+		prev_cmd.send_cmd();
+		uart::put_u8(CHAR_QUERY);
+		cmd_end();
+		ReadOK()
+    }
+}
+
+impl WiFiConnectionSet {	
 	pub fn send(self) -> ReadOK {
-		let WiFiConnectSet(prev_cmd, name, pw) = self;
+		let WiFiConnectionSet(prev_cmd, name, pw) = self;
 		prev_cmd.send_cmd();
 		set();
 		str_param(name);
@@ -278,13 +306,13 @@ impl WiFiConnectSet {
     }
 	
 	pub fn name(self, name: WiFiName) -> Self {
-		let WiFiConnectSet(prev_cmd, _,  pw) = self;
-		WiFiConnectSet(prev_cmd, name, pw)
+		let WiFiConnectionSet(prev_cmd, _,  pw) = self;
+		WiFiConnectionSet(prev_cmd, name, pw)
 	}
 	
 	pub fn pw(self, pw: WiFiPW) -> Self {
-		let WiFiConnectSet(prev_cmd, name, _) = self;
-		WiFiConnectSet(prev_cmd, name, pw)
+		let WiFiConnectionSet(prev_cmd, name, _) = self;
+		WiFiConnectionSet(prev_cmd, name, pw)
 	}
 }
 
@@ -302,7 +330,7 @@ impl IPAddress {
 	pub fn send(self) -> ReadOK {
 		let IPAddress(prev_cmd) = self;
 		prev_cmd.send_cmd();
-		uart::put_u8_arr(b"+CIFSR");
+		uart::put_u8_arr(b"CIFSR");
 		cmd_end()
     }
 }
@@ -311,7 +339,7 @@ impl TCP {
 	fn send_cmd(self) {
 		let TCP(prev_cmd) = self;
 		prev_cmd.send_cmd();
-		uart::put_u8_arr(b"+CIP");
+		uart::put_u8_arr(b"CIP");
 	}
 	
 	pub fn get_state(self) -> TCPGetState {
@@ -453,19 +481,19 @@ impl TCPSendDataSet {
 impl TCPConnection {
 	pub fn send_str(self, data: &[u8]) -> ReadOK {
 		let TCPConnection(handle) = self;
-		at().tcp().send_data().set().tcp_handle(handle).len(data.len() as u8).send().read_answer();
+		at().ext().tcp().send_data().set().tcp_handle(handle).len(data.len() as u8).send().wait();
 		uart::put_u8_arr(data);
 		cmd_end()
 	}
 	
 	pub fn read_until(self, pat: &'static [u8]) -> Self {
-		ReadUntil(pat).read_answer();
+		ReadUntil(pat).wait();
 		self
 	}
 	
 	pub fn close(self) -> ReadOK {
 		let TCPConnection(handle) = self;
-		at().tcp().close().set().tcp_handle(handle).send()
+		at().ext().tcp().close().set().tcp_handle(handle).send()
 	}
 }
 

@@ -58,26 +58,30 @@ pub type PortNo = u16;
 
 pub type DataLen = u8;
 
-pub struct AT();
-pub struct Firmware(pub AT);
-pub struct Reset(pub AT);
-pub struct Echoing(pub AT, pub bool);
-pub struct MultiConnections(pub AT);
-pub struct MultiConnectionsSet(pub MultiConnections, pub bool);
-pub struct UARTDef(pub AT);
-pub struct UARTDefSet(pub UARTDef, pub Baudrate, pub DataBits, pub StopBits, pub Parity, pub FlowControl);
-pub struct OPMode(pub AT);
-pub struct OPModeSet(pub OPMode, pub CWMode);
+pub struct ATBase();
+pub struct Echoing(pub ATBase, pub bool);
 
-pub struct WiFi(pub AT);
+pub struct ATExt(pub ATBase);
+pub struct Firmware(pub ATExt);
+pub struct Reset(pub ATExt);
+pub struct MultiConnections(pub ATExt);
+pub struct MultiConnectionsSet(pub MultiConnections, pub bool);
+pub struct UARTDef(pub ATExt);
+pub struct UARTDefSet(pub UARTDef, pub Baudrate, pub DataBits, pub StopBits, pub Parity, pub FlowControl);
+
+pub struct WiFi(pub ATExt);
+pub struct WiFiMode(pub WiFi);
+pub struct WiFiModeQuery(pub WiFiMode);
+pub struct WiFiModeSet(pub WiFiMode, pub CWMode);
 pub struct WiFiScan(pub WiFi);
-pub struct WiFiConnect(pub WiFi);
-pub struct WiFiConnectSet(pub WiFiConnect, pub WiFiName, pub WiFiPW);
+pub struct WiFiConnection(pub WiFi);
+pub struct WiFiConnectionQuery(pub WiFiConnection);
+pub struct WiFiConnectionSet(pub WiFiConnection, pub WiFiName, pub WiFiPW);
 pub struct WiFiDisconnect(pub WiFi);
 
-pub struct IPAddress(pub AT);
+pub struct IPAddress(pub ATExt);
 
-pub struct TCP(pub AT);
+pub struct TCP(pub ATExt);
 pub struct TCPGetState(pub TCP);
 pub struct TCPOpen(pub TCP);
 pub struct TCPOpenSet(pub TCPOpen, pub TCPHandle, pub HostName, pub PortNo);
@@ -89,7 +93,7 @@ pub struct TCPSendDataSet(pub TCPSendData, pub TCPHandle, pub DataLen);
 pub struct ReadOK();
 pub struct WaitResetDone();
 pub struct WaitDisconnectDone();
-pub struct ReadOPMode();
+pub struct ReadWiFiMode();
 pub struct ReadTCPStatus();
 pub struct WaitTCPOpen(pub TCPHandle);
 pub struct ReadUntil(pub &'static [u8]);

@@ -34,8 +34,8 @@ impl MiniParser {
 	}
 	
 	// Wait until a specific pattern occurs.
-	// Won't work correctly on some inputs if the pattern 
-	// contains parts of itself like in pattern="tetest", input="tetetest"
+	// CAUTION: May fail if the pattern contains parts of itself
+	// (e.g. pattern "tetest" won't be found in input "tetetest")
 	pub fn read_until(self, pattern: &[u8]) -> MiniParser {
 		let MiniParser(next_byte, ok) = self;
 		if ok {

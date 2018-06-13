@@ -14,7 +14,7 @@ pub fn clear_read_buffer() {
 }
 
 impl ReadOK {
-	pub fn read_until_ok(self) -> Result<(), ()> {
+	pub fn wait(self) -> Result<(), ()> {
 		if mini_parser::start(get_byte)
 			.read_until(OK).ok() {
 				Ok(())
@@ -26,7 +26,7 @@ impl ReadOK {
 }
 
 impl WaitResetDone {
-	pub fn wait_for_reset(self) -> Result<(), ()> {
+	pub fn wait(self) -> Result<(), ()> {
 		if mini_parser::start(get_byte)
 			.read_until(b"ready\r\n").ok() {
 				Ok(())
@@ -38,7 +38,7 @@ impl WaitResetDone {
 }
 
 impl WaitDisconnectDone {
-	pub fn wait_for_disconnect(self) -> Result<(), ()> {
+	pub fn wait(self) -> Result<(), ()> {
 		if mini_parser::start(get_byte)
 			.read_until(b"DISCONNECT\r\n").ok() {
 				Ok(())
@@ -49,8 +49,8 @@ impl WaitDisconnectDone {
 	}
 }
 
-impl ReadOPMode {
-	pub fn read_mode(self) -> Result<CWMode, ()> {
+impl ReadWiFiMode {
+	pub fn get(self) -> Result<CWMode, ()> {
 		let mut mode: u8 = 0;
 		if mini_parser::start(get_byte)
 			.read_until(b"+CWMODE:") // AT+CWMODE?\r\r\n+CWMODE:
@@ -69,7 +69,7 @@ impl ReadOPMode {
 
 
 impl ReadTCPStatus {
-	pub fn read_tcp_status(self) -> Result<TCPStatus, ()> {
+	pub fn get(self) -> Result<TCPStatus, ()> {
 		let mut status: u8 = 0;
 		if mini_parser::start(get_byte)
 			.read_until(b"STATUS:") // AT+CIPSTATUS\r\r\nSTATUS:
@@ -87,7 +87,7 @@ impl ReadTCPStatus {
 }
 
 impl WaitTCPOpen {
-	pub fn wait_tcp_open(self) -> Result<TCPConnection, ()> {
+	pub fn wait(self) -> Result<TCPConnection, ()> {
 		let WaitTCPOpen(handle) = self;
 		if mini_parser::start(get_byte)
 			.read_until(OK).ok() {
@@ -100,7 +100,7 @@ impl WaitTCPOpen {
 }
 
 impl ReadUntil {
-	pub fn read_answer(self) {
+	pub fn wait(self) {
 		let ReadUntil(pat) = self;
 		mini_parser::start(get_byte).read_until(pat);
 	}
