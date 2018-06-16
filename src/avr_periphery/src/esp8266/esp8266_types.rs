@@ -1,3 +1,4 @@
+#[derive(PartialEq)]
 pub enum CWMode {
 	Unknown = 0x30,
 	Client = 0x31,
@@ -75,7 +76,6 @@ pub struct WiFiModeQuery(pub WiFiMode);
 pub struct WiFiModeSet(pub WiFiMode, pub CWMode);
 pub struct WiFiScan(pub WiFi);
 pub struct WiFiConnection(pub WiFi);
-pub struct WiFiConnectionQuery(pub WiFiConnection);
 pub struct WiFiConnectionSet(pub WiFiConnection, pub WiFiName, pub WiFiPW);
 pub struct WiFiDisconnect(pub WiFi);
 

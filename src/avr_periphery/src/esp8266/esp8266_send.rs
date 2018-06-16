@@ -275,23 +275,9 @@ impl WiFiConnection {
 		uart::put_u8_arr(b"JAP");
 	}
 	
-	pub fn query(self) -> WiFiConnectionQuery {
-		WiFiConnectionQuery(self) 
-	}
-	
 	pub fn set(self) -> WiFiConnectionSet {
 		WiFiConnectionSet(self, &DUMMY_STR, &DUMMY_STR)
 	}
-}
-
-impl WiFiConnectionQuery {	
-	pub fn send(self)-> ReadOK {
-		let WiFiConnectionQuery(prev_cmd) = self;
-		prev_cmd.send_cmd();
-		uart::put_u8(CHAR_QUERY);
-		cmd_end();
-		ReadOK()
-    }
 }
 
 impl WiFiConnectionSet {	
