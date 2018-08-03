@@ -1,0 +1,478 @@
+\documentclass
+[ 12pt,
+  parskip=half % Absätze durch einen vergrößerten Zeilenabstand getrennt
+]{scrreprt}
+
+\usepackage{mathpazo} %glourious palatino als Schriftart
+\usepackage{beramono} %tt
+\usepackage[scaled=0.95]{berasans} %ss
+
+\usepackage[a4paper,% Papierdimensionen festlegen
+inner=2.0cm, outer=2.0cm, bindingoffset=0.5cm,%
+top=1.5cm,bottom=1.5cm, %
+footskip=1.0cm,includeheadfoot]{geometry}
+
+\usepackage[utf8]{inputenc} % Input encoding (allow direct use of special characters like "ä")
+\usepackage[ngerman]{babel} % Sprache auf Deutsch
+\usepackage[T1]{fontenc} % Schöneres Inhaltsverzeichnis
+%\usepackage{quotchap} % Beautiful chapter decoration
+\usepackage{easyfig} % Bilder einfach einbinden
+\usepackage{hyperref} % Links auf anderes Stellen im Dokument, PDF-Lesezeichen
+\usepackage{tabularx} % Auto Spaltenbreite und Zeilenumbruch in Tabellen mit |X|
+\usepackage{tabulary} % Auto Spaltenbreite und Zeilenumbruch in Tabellen mit |L|R|C|J|
+\usepackage{xcolor} % Für Farben
+\usepackage{lipsum} % Für 'Lorem ipsum...' mit \lipsum[<Anzahl Absätze>]
+\usepackage[colorinlistoftodos]{todonotes} % Pretty Todo Notes & List of Todos
+\usepackage{datetime} % Zur Ausgabe des aktuellen Datums
+\usepackage[chapter]{minted} % Multi-Color-Listings
+\usepackage{caption} % Minted: Für Bildunterschriften bei Listings
+
+%%%%%%%%%% Farben
+\definecolor{darkblue}{rgb}{0, 0, 0.5}
+\definecolor{darkgreen}{rgb}{0, 0.5, 0}
+\definecolor{darkred}{rgb}{0.7, 0, 0}
+\definecolor{darkyellow}{rgb}{0.9, 0.6, 0}
+
+%%%%%%%%%% Konstanten
+
+\newcommand{\titel}{Embedded Rust}
+\newcommand{\authorname}{Niklas Kühl}
+\newcommand{\thesisname}{Ausarbeitung}
+\newcommand{\untertitel}{}
+%\newcommand{\Datum}{20. Februar 2017}
+\newcommand{\Datum}{\the\day. \monthname{} \the\year} % Aktuelles Datum
+
+\newcommand{\pdfdelta}{\texorpdfstring{$\delta$}{Delta}}
+	
+%%%%%%%%%% Befehle
+%\newcommand{\todo}[1]{\textcolor{red}{TODO: #1}} % Todo ohne Package todonotes
+\newcommand{\todoinl}[1]{\todo[inline]{#1}}
+\newcommand{\todoPrioHigh}[1]{\todo[color=red!40, inline]{#1}}
+\newcommand{\todoPrioNormal}[1]{\todo[color=yellow!40, inline]{#1}}
+\newcommand{\todoPrioLow}[1]{\todo[color=green!40, inline]{#1}}
+
+%%%%%%%%%% Konfiguration hyperref
+\hypersetup{ 
+	colorlinks=true,
+	breaklinks=true, % Erlaubt Links, über mehrere Zeilen zu gehen
+	linkcolor=darkblue, 	% Farbe aller Links auf andere Stellen im Dokument: Inhaltsverzeichnis, Glossar, Abkürzungen
+	urlcolor=blue,
+	citecolor=darkgreen,
+	pdftitle={\thesisname},
+	pdfsubject={\titel},
+	pdfauthor={\authorname},
+}
+
+%%%%%%%%%% Literaturverzeichnis-Stil
+\bibliographystyle{abbrv}
+
+%%%%%%%%%% Konfiguration minted
+\usemintedstyle[rust]{colorful} % Style. Siehe https://www.sharelatex.com/learn/Code_Highlighting_with_minted#Reference_guide
+\renewcommand\listoflistingscaption{Quellcodeverzeichnis}
+\setminted{
+	frame=single, 
+	breaklines=true, 
+	fontsize=\small,
+	tabsize=2, 
+	linenos
+}
+
+% Globales Escapeinside
+%\setminted[rust]{escapeinside=\%\%}
+
+% Listing Umgebung, um caption hinzuzufügen
+\newenvironment{mylisting}[1][H]
+{\captionsetup{aboveskip=-0.2\normalbaselineskip}\begin{listing}[#1]}
+	{\end{listing}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+
+\pagenumbering{Roman}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\titlehead{
+	\centering
+	\includegraphics[width=.5\textwidth]{bilder/fhw}\\
+	\bigskip
+}
+
+\subject{\thesisname}
+\title{\titel}
+\date{\vspace{-1cm}\Datum}
+
+\publishers{
+	\vfill
+	\normalsize
+	\raggedright
+	{\small Eingereicht von:}\\
+	\smallskip
+	{\Large \authorname}\\
+	inf102861@fh-wedel.de\\
+	
+ 	\bigskip
+	\bigskip
+	
+   \raggedright
+	{\small Betreuer:}\\
+	\smallskip
+	{\Large Prof. Dr. Ulrich Hoffmann}\\
+	uh@fh-wedel.de\\
+}
+
+\maketitle
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\tableofcontents
+\listoflistings
+\cleardoublepage
+\pagenumbering{arabic}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Einleitung}
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Grundlagen}
+
+\section{Rust}
+
+- Programmiersprache
+	- Sichere Alternative zu C
+	- Dies soll v.a. erreicht werden durch ...
+	
+- Makros in Rust
+	- Makros können zur Erweiterung des Sprachumfangs genutzt werden. Problematische Eigenschaften wie sie C-Makros besitzten, werden allerdings vermieden
+	-  Makros sind im Compiler integriert
+		Es gibt also keinen Präprozessor wie bei C
+	- Da Rust-Makros nicht wie in C auf Textersetzung basieren, können daraus resultierende Fehler nicht auftreten:
+		- Falsche Ergebnisse durch Operator-vorrang
+	- Macro Hygine: Innerhalb von Makros definierte Variablen können keine anderen Variablen verstecken, wenn beide den gleichen Bezeichner haben
+	- Makros stellen wenig anforderungen an das, was in ihnen stehen kann
+		- Es können auch Symbole definiert werde
+		- Es lässt sich relativ frei eine eigene Syntax spezifizieren
+	- Parameter = metavariable
+	- Type = fragment specifier
+	- Da Rust Makros zu einem frühen Zeitpunkt der Kompilierung aufgelöst werden, können keine Rust-Typen wie u8 verwendet werden. Stattdessen besitzen die Parameter eines Makros (=metavariable) Typen (=fragment specifier) wie 
+	- expr (Beliebiger Rust-Ausruck, z.B. 2+2, func(x))
+	- token tree 
+
+- Was ist Rust
+- Vor/Nachteile 
+- Vorteile
+	- Sichere autom. Speicherverwaltung (ohne GC)
+	- Eingebauter Index-Check
+	- Kein Zugriff auf nicht initialisierten Speicher möglich
+- Nachteile
+	- Für Neulinge erstmal schwer zu verstehen??
+	
+- Anwendungsbereiche
+	- Desktop Entwicklung (Firefox)	
+	- Systemprogrammierung
+
+\section{C vs Rust}
+- Buffer Overflow
+	- Z.B. Es wird Protokoll zelenweise übertargen
+		-> Zeile ist zu lang und passt nicht in Buffer
+	C: Es passiert irgendwas
+	Rust: In der offiziellen AVR-LibCore wird dann eine Eindlosschleife ausgelöst -> ein wenig besser
+	Wenn die libcore angepasst wird, ist auch beliebiges Verhalten möglich, zb. Fehlemeldung oder Reset	
+	
+- Rust: gwöhnungsbedürftig wg. borrowing-Konzept
+	
+\section{Mikrocontroller-Programmierung}
+
+- Standardmäßig in C
+- Daher auch Fehler von C enthalten
+- Rust kann hier Vorteile bringen
+(wo? in welchen Bereichen?)
+-> Array-Index-Check
+-> Zugriff auf unitialisierten Speicher
+
+\todoinl{Evtl die Dreiteilung Analyse-Design-Implementierung??}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Einrichtung der Entwicklungsumgebung}
+
+\section{Systemkonfiguration}
+
+Folgende Programmversionen wurden für die Entwicklung genutzt:
+\begin{center}
+	\begin{tabulary}{\columnwidth}{|C|C|C|}
+		\hline
+		\textbf{Anwendung} & \textbf{Version} & \textbf{Beschreibung}\\
+		\hline
+		Betriebssystem & Ubuntu 16.04.4 LTS (64-Bit) & -\\
+		\hline
+		rustc (Desktop) & 1.26.2 & Rust-Compiler für Desktop-Programme\\
+		\hline
+		rustup & 1.11.0 & Rust Update Tool\\
+		\hline
+		cargo & 1.26.0 & Rust-Buildsystem und Paketmanager\\
+		\hline
+		xargo & 0.3.11 & Alternative zu cargo, erlaubt die Verwendung einer benutzerdefinierten Standardbibliothek \\
+		\hline
+		rustc (AVR) & 1.22.0-dev & Rust-Compiler für AVR-Programme\\
+		\hline
+		avr-gcc & 4.9.2 & AVR-C-Compiler und Linker\\
+		\hline
+		avrdude & 6.3 & AVR-Programmiertool\\
+		\hline
+		g++ & 5.4.0 & C++ Compiler\\
+		\hline
+	\end{tabulary}
+	\captionof{table}{Verwendete Software}
+\end{center}
+
+Folgende Hardware kam bei der Entwicklung zum Einsatz:
+\begin{center}
+	\begin{tabulary}{\columnwidth}{|c|c|}
+		\hline
+		\textbf{Hardware} & \textbf{Beschreibung}\\
+		\hline
+		Mikrocontroller (Entwicklungsbord) & ATmega328P Xplained Mini\\
+		\hline
+		Temperatursensor & Dallas 18B20\\
+		\hline
+		WiFi-Modul & ESP-8266l\\
+		\hline
+	\end{tabulary}
+	\captionof{table}{Verwendete Hardware}
+\end{center}
+
+\section{Installation des AVR-Rust-Compilers}
+
+\subsection{Grundlegendes Vorgehen}
+
+Um die Entwicklungsumgebung einzurichten, sollte eine normale Rust-Installation vorhanden sein. Zur Installation siehe \href{https://www.rust-lang.org/en-US/install.html}{www.rust-lang.org/en-US/install.html}.
+
+Für den Rust-Compiler für AVR-Mikrocontroller gibt es keine vorkompilierten Binärdateien. Daher muss er für des verwendete System neu übersetzt werden. Das grundlegende Vorgehen ist auf der entsprechenden GitHub-Seite beschrieben (\href{https://github.com/avr-rust/rust}{github.com/avr-rust/rust}). In den folgenden Kapiteln wird auf Eigenheiten und Probleme bei der Installation eingegangen.
+
+\begin{quote}
+	\begin{mylisting}[H]
+		\caption{Kompilierung und Installation des AVR-Rust-Compilers  \cite{github-avr-rust}}
+		\begin{minted}{bash}
+	# Grab the avr-rust sources
+	git clone https://github.com/avr-rust/rust.git
+	
+	# Create a directory to place built files in
+	mkdir build && cd build
+	
+	# Generate Makefile using settings suitable for an experimental compiler
+	../rust/configure \
+	--enable-debug \
+	--disable-docs \
+	--enable-llvm-assertions \
+	--enable-debug-assertions \
+	--enable-optimize \
+	--prefix=/opt/avr-rust
+	
+	# Build the compiler, optionally install it to /opt/avr-rust
+	make
+	make install
+	
+	# Register the toolchain with rustup
+	rustup toolchain link avr-toolchain $(realpath $(find . -name 'stage1'))
+	
+	# Optionally enable the avr toolchain globally
+	rustup default avr-toolchain
+		\end{minted}
+	\end{mylisting}
+\end{quote}
+
+\subsection{Übersetzungsvorgang (make)}
+
+Die ersten Schritte bis zum eigentlichen Übersetzungsvorgang sollten ohne Probleme ausgeführt werden. Der aufwändigste Schritt ist der eigentliche Übersetzungsprozess Dieser kann einige Zeit (mehrere Stunden) in Anspruch nehmen und auch mit einem Fehler abbrechen. Im folgenden sind einige Fehler aufgelistet welche beim Übersetzungsvorgang auftraten, sowie mögliche Lösungsansätze:
+
+\begin{itemize}
+	\item Der Übersetzungsprozess bricht mit einem Speicherfehler ab 
+		\smallskip \\
+		Wenn ein 32-Bit-Betriebssystem verwendet wird, sollte auf ein 64-Bit-Betriebssystem gewechselt werden. Zum Zeitpunkt dieser Dokumentation war die Übersetzung auf 32-Bit-Systemen nicht möglich. Dies ist ein bekannter Fehler\footnote{\url{https://github.com/rust-lang/rust/issues/39394}}.
+	\item Der Übersetzungsprozess wird vom Betriebssystem beendet 
+	\smallskip \\
+	Es ist nicht genügend Arbeitsspeicher verfügbar. (In einer virtuellen Maschine mit 4GB RAM schlug die Übersetzung fehl, nach Erhöhung auf 6GB RAM war die Übersetzung erfolgreich)
+	\item Fehler beim Linken des Programms: \textit{cannot find -lffi}
+	\smallskip \\
+	Es müssen die fehlenden Pakete \textit{libffi6} und \textit{libffi-dev} installiert werden.
+\end{itemize}
+
+\subsection{Installationsvorgang (make install)}
+
+Der Befehl \mintinline{bash}|make install| installiert den AVR-Rust-Compiler in das Verzeichnis \mintinline{bash}|/opt/avr-rust|. Dies schlug zunächst fehl, da hierfür Root-Rechte erforderlich sind. Eine Ausführung von \mintinline{bash}|make install| mit Root-Rechten schlug ebenfalls fehl. Daher wurde der Ordner \mintinline{bash}|/opt/avr-rust| manuell mit vollen Berechtigungen angelegt: 
+\begin{minted}{bash}
+sudo mkdir -m 777 /opt/avr-rust
+\end{minted}
+
+Dadurch konnte die Installation erfolgreich ausgeführt werden konnte. Im Anschluss wurden die Rechte des Ordners dann wieder eingeschränkt.
+
+\subsection{Toolchain konfigurieren (rustup toolchain)}
+
+\section{Hello World AVR-Rust}
+
+
+\section{Entwicklungsumgebungen}
+
+- Diskussion IDEs
+	- Eclipse mit RustDT
+	- VS Code
+	
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Entwicklung}
+
+- Erst kleinere Testprogramme
+- Dann größeres Programm mit Peripherie-Ansteuerung
+- DSL mit Rust
+	- Method Chaining
+	- Makro DSL
+- Hello World AVR-Rust
+- Tests Rust vs C (AVR)
+
+
+- Test des avr-periphery Programms erfolgte mit einem durch netcat beireigestellten Server, dadurch konnten die durch den µController gesendeten nachrichten auf einem PC angezeigt werden
+ 
+\Figure[here, height=0.5\textheight, label={Schaltplan}, caption={Schaltplan}]{bilder/Rust_AVR_Schaltplan}
+ 
+\begin{mylisting}[H]
+	\caption{Test Rust Listing}
+	\begin{minted}{rust}
+	fn open_server_connection() -> Result<TCPConnection, ()> {
+		esp8266::at().send().wait();
+		esp8266::at().ext().reset().send().wait();
+
+		esp8266::at().ext().wifi().mode().set().cw_mode(CWMode::Client) .send().wait();
+		esp8266::at().ext().multi_connections().set().enabled(true) .send().wait();
+		esp8266::at().ext().wifi().scan().send().wait();
+		
+		let connect_wifi = esp8266::at().ext().wifi().connection().set().name(WIFI_NAME) .pw(WIFI_PW).send().wait();
+		if let Ok(_) = connect_wifi {
+			return esp8266::at().ext().tcp().open().set()
+			.tcp_handle(TCPHandle::Multi1) .hostname(HOST).port(PORT).send().wait();
+		}
+		else {
+			return Err(());
+		}
+	}
+	\end{minted}
+\end{mylisting} 
+
+\begin{mylisting}[H]
+	\caption{Und das gleiche mit Makros}
+	\begin{minted}[escapeinside=\%\%]{rust}
+fn open_server_connection() -> Result<TCPConnection, ()> {
+	esp_cmd!(send wait AT)?;
+	esp_cmd!(send wait AT+RST)?;
+	
+	esp_cmd!(send wait ATE true)?;
+	esp_cmd!(send wait AT+CWMODE = cw_mode:(CWMode::Client))?;
+	//let mode = esp_cmd!(send get AT+CWMODE?)?; 
+	esp_cmd!(send wait AT+CIPMUX = enabled%:% true)?;
+	esp_cmd!(send wait AT+CWLAP)?;
+	
+	esp_cmd!(send wait AT+CWJAP = name:%WIFI%_%NAME%, pw:%WIFI%_%PW%)?;
+	return esp_cmd!(send wait AT+CIPSTART = tcp_handle:(TCPHandle::Multi1), hostname: %HOST%, port:%PORT%);
+}
+	\end{minted}
+\end{mylisting} 
+
+\begin{mylisting}[H]
+	\caption{Test Rust Listing 2}
+	\begin{minted}{rust}
+#[no_mangle]
+fn send_temperature() { // Send Temperature to server
+	if let Ok(conn) = open_server_connection() {
+		for _i : u8 in 0.. 10 {
+			conn.send_str(b"Temperature: ").wait();
+			let temp = ds18b20::read_temperature();
+			let temp_str = ds18b20::temperature_to_str(&temp);
+			conn.send_str(&temp_str).wait();
+			conn.send_str(b"\r\n").wait();
+			delay_ms(1000);
+		}
+		close_server_connection(conn);
+	}
+}
+	\end{minted}
+\end{mylisting} 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Ergebnisse}
+% ... Ergebnisse aus der Untersuchung von Rust auf AVR
+- Erkenntnisse aus den Tests
+	(Vor/Nachteile zu C)
+- Probleme bei der Entwicklung 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Fazit}
+
+- Im allgemeinen eignet sich rust zur systmprogrammierung. Durch A, B und C ergeben sich Vorteile gegenüber der Verwendung von C. Dadurch können robustere Programme entwickelt werden.
+
+Die eingesetzte Compiler Version hatte jedoch einige Schwächen
+
+Somit wird vom EInsatz von Rust auf AVR vorerst abgeraten. Wenn der Compiler stabil ist, kann Rust allerdings gut verwendet werden.
+
+\chapter{Notizen}
+
+- Sind Maybe-Typen von Rust effizient auf AVR?
+- Sind ISR's re-entrant bei Rust
+	=> Was passiert, wenn bei ISR-Ausführung ein weiterer Interrupt auftritt
+- Was gibt es für std-libraries für avr rust
+- unsafe Rust
+	- Was ist daran unsicher
+		- Echte Pointer möglich, die NULL sein dürfen
+			=> Spezieller Zeigertyp, die STd-Refs von Rust dürfen auch in unsafe Code nie null sein
+		- Mit diesen Zeigertypen ist auch der Zugriff auf beliebige SPeicheradressen möglich
+	- wie kann man die unsafe-sectionen auf ein min reduzieren?
+	=> Durch Funktionen und Makros lassen sich unsafe-zugriffe kapseln
+	- z.B. auch erzeugen einer vermeintlich sicheren Referenz auf globales Obj
+		=> trotz normaler Referenz nicht thread-safe
+	
+- Performance
+	- Test: Fibonacci Berechnung inkl Speicherzugriffe
+		Ergebnis: C etwa um Faktor 1.5 schneller, abhängig vom Optimierungslevel
+	- Code größe
+		1 C mit opt-size	1500By
+		2 Rust				2600
+		3 C mit opt-speed	2800
+	- RAM Verbrauch
+		C: Bei 120 Calls Stack overflow; ~ 120*16 = 1920Bytes von 2048
+		Rust Bei 100 Calls			~ 100*16  = 1600Bytes
+	- ALLERDINGS: C COmpiler wurde über Jahre hinweg Optimiert, daher sind diese Zahlen schon ganz gut
+	
+- Rust Out of Bounds
+	- panic wird ausgelöst
+	- Nutzer muss panic Funktion definieren, welche feslegt was dann passieren soll
+	- Die Funktion darf nicht zurückkehren; dies wird durch Rust zur Übersetzungszeit festgelegt
+	- ABER: In der avr-libcore wird die benutzerdefinierte Funktion nicht aufgerufen; stattdessen wird Endlossschleife ausgelöst
+	- Wenn libcore angepasst wird (WO?) ist bei OOB beliebiges Verhalten wie zB Fehlermeldung oder Neustart möglich
+	
+- Vorteile durch Typsystem
+	- Erkennung unf Verhinderung von uninitialisierten  Variablen
+	- Verwechselung von Variablen werden leichter erkannt 
+		(da Zwischen u8 und usize unterschieden wird)
+	- Fehler bei Zuweisung unterschiedlicher Typen - Keine implizite Typumwandlung
+	
+- Was fehlt AVR-Rust
+	- Stabiler Compiler
+	- Std-Library
+		- Delay-Funktion
+		- ISR-Definitionen (wie in c die interrupt.h) 
+
+\section{DSL}
+
+- Verbieten, dass andere Kommandos als die unterstützten zusammengesetzt werden
+- Fehler werden schon zur Übersetzungszeit erkannt
+	=> Wie sehen die Fehlermedlungen aus? (Makro-DSL)
+		Wenn man sich beim Makro verschrieben hat, kommt dann eine aussagekräftige Fehlermeldung???
+=> Stichwort: Fluent Interface
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Literaturverzeichnis
+\nocite{*} % Auch nicht zitierte Quellen mit aufführen
+\bibliography{Embedded_Rust_Doku} % create with BibTeX
+\addcontentsline{toc}{chapter}{Literaturverzeichnis} 
+
+\end{document}

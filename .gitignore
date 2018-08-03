@@ -23,3 +23,21 @@ src/avr_test_performance/target/
 src/avr_test_eeprom/target/
 
 src/avr_periphery/target/
+
+doc/_minted-Embedded_Rust_Doku/
+
+doc/Embedded_Rust_Doku\.aux
+
+doc/Embedded_Rust_Doku\.bbl
+
+doc/Embedded_Rust_Doku\.blg
+
+doc/Embedded_Rust_Doku\.log
+
+doc/Embedded_Rust_Doku\.lol
+
+doc/Embedded_Rust_Doku\.out
+
+doc/Embedded_Rust_Doku\.synctex\.gz
+
+doc/Embedded_Rust_Doku\.toc
