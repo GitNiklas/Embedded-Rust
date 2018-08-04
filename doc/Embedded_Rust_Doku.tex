@@ -232,7 +232,7 @@ Folgende Hardware kam bei der Entwicklung zum Einsatz:
 		\hline
 		\textbf{Hardware} & \textbf{Beschreibung}\\
 		\hline
-		Mikrocontroller (Entwicklungsbord) & ATmega328P Xplained Mini\\
+		Mikrocontroller (Entwicklungsboard) & ATmega328P Xplained Mini\\
 		\hline
 		Temperatursensor & Dallas 18B20\\
 		\hline
@@ -246,14 +246,13 @@ Folgende Hardware kam bei der Entwicklung zum Einsatz:
 
 \subsection{Grundlegendes Vorgehen}
 
-Um die Entwicklungsumgebung einzurichten, sollte eine normale Rust-Installation vorhanden sein. Zur Installation siehe \href{https://www.rust-lang.org/en-US/install.html}{www.rust-lang.org/en-US/install.html}.
+Um die Entwicklungsumgebung einzurichten, sollte eine normale Rust-Installation vorhanden sein. Zur Installation siehe \href{https://www.rust-lang.org/en-US/install.html}{www.rust-lang.org/en-US/install.html}. Außerdem sollte das alternative Rust-Buildsystem xargo installiert werden: \mintinline{bash}|cargo install xargo|.
 
 Für den Rust-Compiler für AVR-Mikrocontroller gibt es keine vorkompilierten Binärdateien. Daher muss er für des verwendete System neu übersetzt werden. Das grundlegende Vorgehen ist auf der entsprechenden GitHub-Seite beschrieben (\href{https://github.com/avr-rust/rust}{github.com/avr-rust/rust}). In den folgenden Kapiteln wird auf Eigenheiten und Probleme bei der Installation eingegangen.
 
-\begin{quote}
-	\begin{mylisting}[H]
-		\caption{Kompilierung und Installation des AVR-Rust-Compilers  \cite{github-avr-rust}}
-		\begin{minted}{bash}
+\begin{mylisting}[H]
+	\caption{Kompilierung und Installation des AVR-Rust-Compilers  \cite{github-avr-rust}}
+	\begin{minted}{bash}
 	# Grab the avr-rust sources
 	git clone https://github.com/avr-rust/rust.git
 	
@@ -279,8 +278,7 @@ Für den Rust-Compiler für AVR-Mikrocontroller gibt es keine vorkompilierten Bi
 	# Optionally enable the avr toolchain globally
 	rustup default avr-toolchain
 		\end{minted}
-	\end{mylisting}
-\end{quote}
+\end{mylisting}
 
 \subsection{Übersetzungsvorgang (make)}
 
@@ -289,35 +287,61 @@ Die ersten Schritte bis zum eigentlichen Übersetzungsvorgang sollten ohne Probl
 \begin{itemize}
 	\item Der Übersetzungsprozess bricht mit einem Speicherfehler ab 
 		\smallskip \\
-		Wenn ein 32-Bit-Betriebssystem verwendet wird, sollte auf ein 64-Bit-Betriebssystem gewechselt werden. Zum Zeitpunkt dieser Dokumentation war die Übersetzung auf 32-Bit-Systemen nicht möglich. Dies ist ein bekannter Fehler\footnote{\url{https://github.com/rust-lang/rust/issues/39394}}.
+		Dieser Fehler trat auf einem 32-Bit-System auf, weswegen auf ein 64-Bit-System gewechselt wurde. Zum Zeitpunkt der Entwicklung war die Übersetzung auf 32-Bit-Systemen nicht möglich. Dies ist ein bekannter Fehler\footnote{\url{https://github.com/rust-lang/rust/issues/39394}}.
 	\item Der Übersetzungsprozess wird vom Betriebssystem beendet 
 	\smallskip \\
-	Es ist nicht genügend Arbeitsspeicher verfügbar. (In einer virtuellen Maschine mit 4GB RAM schlug die Übersetzung fehl, nach Erhöhung auf 6GB RAM war die Übersetzung erfolgreich)
+	Es war nicht genügend Arbeitsspeicher verfügbar. In einer virtuellen Maschine mit 4GB RAM schlug die Übersetzung fehl. Nachdem der Arbeitsspeicher auf 6GB erhöht wurde, war die Übersetzung erfolgreich.
 	\item Fehler beim Linken des Programms: \textit{cannot find -lffi}
 	\smallskip \\
-	Es müssen die fehlenden Pakete \textit{libffi6} und \textit{libffi-dev} installiert werden.
+	Es mussten die fehlenden Pakete \textit{libffi6} und \textit{libffi-dev} installiert werden.
 \end{itemize}
 
 \subsection{Installationsvorgang (make install)}
 
 Der Befehl \mintinline{bash}|make install| installiert den AVR-Rust-Compiler in das Verzeichnis \mintinline{bash}|/opt/avr-rust|. Dies schlug zunächst fehl, da hierfür Root-Rechte erforderlich sind. Eine Ausführung von \mintinline{bash}|make install| mit Root-Rechten schlug ebenfalls fehl. Daher wurde der Ordner \mintinline{bash}|/opt/avr-rust| manuell mit vollen Berechtigungen angelegt: 
-\begin{minted}{bash}
-sudo mkdir -m 777 /opt/avr-rust
+\begin{minted}[linenos=false]{bash}
+	sudo mkdir -m 777 /opt/avr-rust
 \end{minted}
 
 Dadurch konnte die Installation erfolgreich ausgeführt werden konnte. Im Anschluss wurden die Rechte des Ordners dann wieder eingeschränkt.
 
-\subsection{Toolchain konfigurieren (rustup toolchain)}
+
+
+\subsection{Rust-Toolchain konfigurieren (rustup toolchain)}
+
+Damit die in \mintinline{bash}|/opt/avr-rust| installierte AVR-Toolchain genutzt wird, sollte folgender Befehl genutzt werden:
+\begin{minted}[linenos=false]{bash}
+	rustup toolchain link avr-toolchain /opt/avr-rust
+\end{minted}
+
+\subsection{Installation der AVR-Toolchain}
+
+Zum Programmieren des Mikrocontrollers muss eine entsprechende Toolchain vorhanden sein, welche mit den folgendem Befehl installiert werden kann:
+\begin{minted}[linenos=false]{bash}
+	apt-get install avr-libc binutils-avr gcc-avr avrdude
+\end{minted}
+
+Zum Zeitpunkt der Entwicklung war in den Paketquellen avrdude nur in der Version 6.2 enthalten. Das verwendete Entwicklungsboard \textit{ATmega328P Xplained Mini} wird jedoch erst ab avrdude 6.3 unterstützt, welcher mit folgenden Befehlen installiert werden kann:
+\begin{mylisting}[H]
+	\caption{Installation avrdude 6.3}
+	\begin{minted}{bash}
+	add-apt-repository ppa:ubuntuhandbook1/apps
+	apt-get update
+	apt-get install avrdude
+	\end{minted}
+\end{mylisting}
+
+\subsection{Optional: udev-Regel anlegen}
+
+Da unter Linux zum Verwenden des AVR-Programmers standardmäßig Root-Rechte erforderlich sind, kann folgende Zeile in der Datei \mintinline{bash}|/etc/udev/rules.d/99_usbprog.rules| hinzugefügt werden, um die Programmierung auch für normale Benutzer zu erlauben:
+\begin{minted}[linenos=false]{text}
+	SUBSYSTEM=="usb", ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="2145", GROUP="plugdev", MODE="0660"
+\end{minted}
 
 \section{Hello World AVR-Rust}
 
 
-\section{Entwicklungsumgebungen}
 
-- Diskussion IDEs
-	- Eclipse mit RustDT
-	- VS Code
-	
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Entwicklung}
