@@ -5,7 +5,7 @@
 // timer.rs:
 //
 // isr_timer0_compa_vect!({
-//	  ...
+//    ...
 // })
 //
 // Interrupts inside main crates need a 'pub use <ISR>' in main.rs
@@ -19,9 +19,9 @@
 macro_rules! define_isr {
     ($vect:ident, $body:block) => (
         #[no_mangle]
-		pub extern "avr-interrupt" fn $vect() {
-			$body;
-		}
+        pub extern "avr-interrupt" fn $vect() {
+            $body;
+        }
     );
 }
 

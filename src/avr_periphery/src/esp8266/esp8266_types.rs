@@ -1,54 +1,54 @@
 #[derive(PartialEq)]
 pub enum CWMode {
-	Unknown = 0x30,
-	Client = 0x31,
-	AccessPoint = 0x32,
-	AcPointClient = 0x33
+    Unknown = 0x30,
+    Client = 0x31,
+    AccessPoint = 0x32,
+    AcPointClient = 0x33
 }
 
 pub type Baudrate = u32;
 
 pub enum DataBits {
-	_5 = 0x35,
-	_6 = 0x36,
-	_7 = 0x37,
-	_8 = 0x38
+    _5 = 0x35,
+    _6 = 0x36,
+    _7 = 0x37,
+    _8 = 0x38
 }
 
 pub enum StopBits {
-	_1 = 0x31,
-	_1p5 = 0x32,
-	_2 = 0x33,
+    _1 = 0x31,
+    _1p5 = 0x32,
+    _2 = 0x33,
 }
 
 pub enum Parity {
-	None = 0x30,
-	Odd = 0x31,
-	Even = 0x32,
+    None = 0x30,
+    Odd = 0x31,
+    Even = 0x32,
 }
 
 pub enum FlowControl {
-	Disabled = 0x30,
-	Rts = 0x31,
-	Cts = 0x32,
-	RtsCts = 0x33,
+    Disabled = 0x30,
+    Rts = 0x31,
+    Cts = 0x32,
+    RtsCts = 0x33,
 }
 
 #[derive(Copy, Clone)]
 pub enum TCPHandle {
-	Multi0 = 0x30,
-	Multi1 = 0x31,
-	Multi2 = 0x32,
-	Multi3 = 0x33,
-	Multi4 = 0x34
+    Multi0 = 0x30,
+    Multi1 = 0x31,
+    Multi2 = 0x32,
+    Multi3 = 0x33,
+    Multi4 = 0x34
 }
 
 pub enum TCPStatus {
-	Unknown = 0x30,
-	ConnectedHasIP = 0x32,
-	OpenTCPConn = 0x33,
-	TCPDisconnected = 0x34,
-	NoWiFiConnected = 0x35
+    Unknown = 0x30,
+    ConnectedHasIP = 0x32,
+    OpenTCPConn = 0x33,
+    TCPDisconnected = 0x34,
+    NoWiFiConnected = 0x35
 }
 
 pub type WiFiName = &'static [u8];
@@ -103,23 +103,23 @@ pub struct TCPConnection(pub TCPHandle);
 
 impl From<u8> for CWMode {
     fn from(val: u8) -> CWMode {
-    	return match val {
-    		0x31 => CWMode::Client,
-    		0x32 => CWMode::AccessPoint,
-    		0x33 => CWMode::AcPointClient,
-    		_ => CWMode::Unknown
-    	}
+        return match val {
+            0x31 => CWMode::Client,
+            0x32 => CWMode::AccessPoint,
+            0x33 => CWMode::AcPointClient,
+            _ => CWMode::Unknown
+        }
     }
 }
 
 impl From<u8> for TCPStatus {
     fn from(val: u8) -> TCPStatus {
-    	return match val {
-    		0x32 => TCPStatus::ConnectedHasIP,
-    		0x33 => TCPStatus::OpenTCPConn,
-    		0x34 => TCPStatus::TCPDisconnected,
-    		0x35 => TCPStatus::NoWiFiConnected,
-    		_ => TCPStatus::Unknown
-    	}
+        return match val {
+            0x32 => TCPStatus::ConnectedHasIP,
+            0x33 => TCPStatus::OpenTCPConn,
+            0x34 => TCPStatus::TCPDisconnected,
+            0x35 => TCPStatus::NoWiFiConnected,
+            _ => TCPStatus::Unknown
+        }
     }
 }

@@ -9,21 +9,21 @@ const OCR0A_VAL: u8 = (F_CPU / (PRESCALER * TIMER_FREQUENCY_HZ) - 1) as u8; // S
 static mut TIME_MS: u32 = 0;
 
 pub fn init() {
-	reg_sbi!(TCCR0A, WGM01); // CTC Mode	
-	reg_sbi!(TCCR0B, CS01 | CS00); // Prescaler = 64
-	reg_write!(OCR0A, OCR0A_VAL);
-	reg_write!(TIMSK0, OCIE0A); // Allow Compare Interrupt
+    reg_sbi!(TCCR0A, WGM01); // CTC Mode    
+    reg_sbi!(TCCR0B, CS01 | CS00); // Prescaler = 64
+    reg_write!(OCR0A, OCR0A_VAL);
+    reg_write!(TIMSK0, OCIE0A); // Allow Compare Interrupt
 }
 
 pub fn time_ms() -> u32 {
-	unsafe {
-		return read_volatile(&TIME_MS);
-	}
+    unsafe {
+        return read_volatile(&TIME_MS);
+    }
 }
 
 // Timer/Counter0 Compare Match A
 isr_timer0_compa_vect!({
-	unsafe {
-		TIME_MS += 1;
-	}
+    unsafe {
+        TIME_MS += 1;
+    }
 });
