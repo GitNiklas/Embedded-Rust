@@ -1,3 +1,6 @@
+// Module for creating AT Commands
+// Commands are created using a method-chain starting with at(), e.g.:
+// at().ext().tcp().open().set().tcp_handle(TCPHandle::Multi1).hostname(b"192.168.2.3").port(80)
 use uart;
 use esp8266::esp8266_types::*;
 

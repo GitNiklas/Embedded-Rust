@@ -1,3 +1,4 @@
+// Wait a certain number of milliseconds(busy waiting)
 pub fn delay_ms(wait: u16) {
     const F_CPU: u32 = 16_000_000; 
     const CYCLES_PER_MS: u16 = (F_CPU / 1000) as u16;

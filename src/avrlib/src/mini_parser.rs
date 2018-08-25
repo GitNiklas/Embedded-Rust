@@ -1,10 +1,11 @@
+// Low-level Parser Module for reading a byte stream.
+
 macro_rules! get {($next_byte:ident) => (
     match $next_byte() {
         Ok(x) => x,
         Err(_) => return MiniParser($next_byte, false)  
     }
 );}
-
 
 type NextByteFn = fn() -> Result<u8, ()>;
 
@@ -15,11 +16,13 @@ pub fn start(next_byte: NextByteFn) -> MiniParser {
 }
 
 impl MiniParser {
+    // check if all operations succeded
     pub fn ok(self) -> bool {
         let MiniParser(_, ok) = self;
         return ok;
     }
     
+    // Skip a certain number of bytes (no timeout)
     pub fn skip(self, no_bytes: u8) -> MiniParser {
         let MiniParser(next_byte, ok) = self;
         if ok {
@@ -59,6 +62,7 @@ impl MiniParser {
         }
     }
     
+    // Expect a specific Byte Sequence in stream, fail if Sequence not found
     pub fn tag(self, tag: &str) -> MiniParser {
         let MiniParser(next_byte, ok) = self;
         if ok {
@@ -75,6 +79,7 @@ impl MiniParser {
         }
     }
     
+    // Read a u8 from stream
     pub fn val_u8(self, val: &mut u8) -> MiniParser {
         let MiniParser(next_byte, ok) = self;
         if ok {

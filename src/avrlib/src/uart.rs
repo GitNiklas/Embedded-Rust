@@ -1,3 +1,5 @@
+// Module for Serial UART (Interrupt-based)
+// Rx and Tx Data is stored in FiFo Buffers
 use arduino::*;
 use core::ptr::{write_volatile, read_volatile};
 use fifo::*;

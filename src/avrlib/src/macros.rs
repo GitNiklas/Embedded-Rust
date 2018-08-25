@@ -52,12 +52,15 @@ macro_rules! nop {() => (unsafe{ asm!("" :::: "volatile") });}
 #[macro_export] 
 macro_rules! wdt_reset {() => (unsafe{ asm!("wdr" :::: "volatile") });}
 
+// Creates a Reference to an global variable which can be used in safe code
 #[macro_export] 
 macro_rules! unsafe_ref {($global_var:ident) => (unsafe{ &mut $global_var });}
 
+// Read a global variable
 #[macro_export] 
 macro_rules! unsafe_read {($global_var:ident) => (unsafe{ $global_var });}
 
+// Write a global variable
 #[macro_export] 
 macro_rules! unsafe_write {($global_var:ident = $val:expr) => (unsafe{ $global_var = $val });}
 

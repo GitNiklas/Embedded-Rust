@@ -159,7 +159,7 @@ fn isr_reset() {
         State::After500us => {
             bus_high();
             unsafe_write!(STATE = State::After660us);
-            configure_timer(TIMER_CONF_160_US);
+            configure_timer(TIMER_CONF_160_US); // After 160 us, presence-detect should be done
         }
         _ => { // State::After500us
             unsafe_write!(STATE = State::Done);

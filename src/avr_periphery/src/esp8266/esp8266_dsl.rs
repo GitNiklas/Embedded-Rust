@@ -1,3 +1,12 @@
+// Macros for a AT-Command like Syntax.
+//
+// Examples: 
+// esp_cmd!(send wait AT)
+// esp_cmd!(send wait AT+RST)
+// let mode = esp_cmd!(send get AT+CWMODE?)
+// esp_cmd!(send wait AT+CWJAP = name:b"SSID", pw:b"pw")
+// esp_cmd!(send wait AT+CIPSTART = tcp_handle:(TCPHandle::Multi1), hostname: b"192.168.2.3", port:80)
+
 macro_rules! esp_cmd {
     (send wait $($tail:tt)*) => { esp_cmd!(send $($tail)*).wait() };
     (send get $($tail:tt)*) => { esp_cmd!(send $($tail)*).get() };
@@ -11,7 +20,7 @@ macro_rules! esp_cmd {
 macro_rules! process_expr {
     ($obj:expr, $func:tt) => { call_func!($obj, $func) };
     ($obj:expr, = $($tail:tt)* ) => { process_params!(call_func!($obj, =), $($tail)*) };
-    ($obj:expr, $func:tt $($tail:tt)* ) => { process_expr!(call_func!($obj, $func), $($tail)*); };
+    ($obj:expr, $func:tt $($tail:tt)* ) => { process_expr!(call_func!($obj, $func), $($tail)*) };
 }
 
 macro_rules! process_params {

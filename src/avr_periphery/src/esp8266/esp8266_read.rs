@@ -4,7 +4,7 @@ use timer;
 use delay::delay_ms;
 use esp8266::esp8266_types::*;
 
-const OK: &[u8] = b"OK\r\n";
+const OK: &[u8] = b"OK\r\n"; // End Sequence of most Messages
 const TIMEOUT_MS: u32 = 30000; 
 
 pub fn clear_read_buffer() {
