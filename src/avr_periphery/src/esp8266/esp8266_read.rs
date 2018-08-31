@@ -13,6 +13,7 @@ pub fn clear_read_buffer() {
     }
 }
 
+// Wait for OK String
 impl ReadOK {
     pub fn wait(self) -> Result<(), ()> {
         if mini_parser::start(get_byte)

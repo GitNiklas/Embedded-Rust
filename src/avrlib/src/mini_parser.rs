@@ -1,5 +1,6 @@
 // Low-level Parser Module for reading a byte stream.
 
+// Internal Macro to read next byte
 macro_rules! get {($next_byte:ident) => (
     match $next_byte() {
         Ok(x) => x,
@@ -7,6 +8,7 @@ macro_rules! get {($next_byte:ident) => (
     }
 );}
 
+// Prototype for external Get Byte Function
 type NextByteFn = fn() -> Result<u8, ()>;
 
 pub struct MiniParser(NextByteFn, bool);

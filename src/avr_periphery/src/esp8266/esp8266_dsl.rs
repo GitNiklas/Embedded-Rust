@@ -1,4 +1,4 @@
-// Macros for a AT-Command like Syntax.
+// Macros for command definition with an AT-Command like Syntax.
 //
 // Examples: 
 // esp_cmd!(send wait AT)
@@ -7,6 +7,7 @@
 // esp_cmd!(send wait AT+CWJAP = name:b"SSID", pw:b"pw")
 // esp_cmd!(send wait AT+CIPSTART = tcp_handle:(TCPHandle::Multi1), hostname: b"192.168.2.3", port:80)
 
+// Entry macro, handling the start of the command
 macro_rules! esp_cmd {
     (send wait $($tail:tt)*) => { esp_cmd!(send $($tail)*).wait() };
     (send get $($tail:tt)*) => { esp_cmd!(send $($tail)*).get() };
@@ -17,17 +18,20 @@ macro_rules! esp_cmd {
     (AT $($tail:tt)*) => { process_expr!(at(), $($tail)*) };
 }
 
+// Call all functions without parameters, until '=' is found or cmd end is reached
 macro_rules! process_expr {
     ($obj:expr, $func:tt) => { call_func!($obj, $func) };
     ($obj:expr, = $($tail:tt)* ) => { process_params!(call_func!($obj, =), $($tail)*) };
     ($obj:expr, $func:tt $($tail:tt)* ) => { process_expr!(call_func!($obj, $func), $($tail)*) };
 }
 
+// Call all functions after '=' (with each having 1 parameter)
 macro_rules! process_params {
      ($obj:expr, $func:tt : $val:tt) => { $obj.$func($val)};
      ($obj:expr, $func:tt : $val:tt, $($tail:tt)*) => { process_params!($obj.$func($val), $($tail)*)};
 }
 
+// Translation of Cmd Symbols to function calls
 macro_rules! call_func {
     ($obj:expr, +)          => {$obj.ext()};
     ($obj:expr, ?)          => {$obj.query()};

@@ -1,3 +1,5 @@
+// Genral-use macros, mostly for encapsulation of unsafe code
+
 #[macro_export] 
 macro_rules! reg_write { 
     ($reg:ident, $val:expr) => (

@@ -34,6 +34,7 @@ pub mod std {
     pub unsafe extern "C" fn rust_eh_personality(_state: (), _exception_object: *mut (), _context: *mut ()) -> () {
     }
 
+    // On panic, set LED and restart MCU
     #[lang = "panic_fmt"]
     #[unwind]
     #[no_mangle]
@@ -88,23 +89,6 @@ fn open_server_connection() -> Result<TCPConnection, ()> {
     esp_cmd!(send wait AT+CWJAP = name:WIFI_NAME, pw:WIFI_PW)?;
     return esp_cmd!(send wait AT+CIPSTART = tcp_handle:(TCPHandle::Multi1), hostname: HOST, port:PORT);
 }
-
-//fn open_server_connection() -> Result<TCPConnection, ()> {
-//  esp8266::at().send().wait();
-//  esp8266::at().ext().reset().send().wait();
-//
-//  esp8266::at().ext().wifi().mode().set().cw_mode(CWMode::Client).send().wait();
-//  esp8266::at().ext().multi_connections().set().enabled(true).send().wait();
-//  esp8266::at().ext().wifi().scan().send().wait();
-//  
-//  let connect_wifi = esp8266::at().ext().wifi().connection().set().name(WIFI_NAME).pw(WIFI_PW).send().wait();
-//  if let Ok(_) = connect_wifi {
-//      return esp8266::at().ext().tcp().open().set().tcp_handle(TCPHandle::Multi1).hostname(HOST).port(PORT).send().wait();
-//  }
-//  else {
-//      return Err(());
-//  }
-//}
 
 fn close_server_connection(conn: TCPConnection) {
     conn.close().wait();

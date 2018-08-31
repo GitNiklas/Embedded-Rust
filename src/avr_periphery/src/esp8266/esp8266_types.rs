@@ -1,3 +1,5 @@
+// Type Definitions for the ESP8266 DSL
+
 #[derive(PartialEq)]
 pub enum CWMode {
     Unknown = 0x30,

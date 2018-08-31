@@ -1,7 +1,7 @@
 
 // itoa macro
 // Buffer has to be large enough for num
-// Usage: let startindex = itoa!(1, buffer);
+// Usage: let startindex = itoa!(42, buffer);
 #[macro_export] 
 macro_rules! itoa {
     ($num:expr, $buffer:ident) => ({
