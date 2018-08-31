@@ -1,8 +1,0 @@
-[package]
-name = "avr_test_int_overflow"
-version = "0.1.0"
-authors = ["Niklas Kuehl <nkuehl39@gmx.de>"]
-
-[dependencies]
-arduino = { path = "../ruduino", version = "0.1" }
-avrlib = { path = "../avrlib", version = "0.1" }

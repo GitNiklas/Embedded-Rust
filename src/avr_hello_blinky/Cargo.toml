@@ -1,7 +1,0 @@
-[package]
-name = "blink"
-version = "0.1.0"
-authors = ["Dylan McKay <me@dylanmckay.io>"]
-
-[dependencies]
-arduino = { path = "../ruduino", version = "0.1" }
