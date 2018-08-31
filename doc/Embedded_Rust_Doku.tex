@@ -463,7 +463,7 @@ Der EEPROM dient zur persistenten Speicherung von Daten. Da zur Verwendung ledig
 	\end{minted}
 \end{mylisting} 
 
-In C gibt es allerdings die Möglichkeit, Variablen mit dem EEMEM-Attribut zu kennzeichnen (siehe Listing \ref{listing:eeprom-c}). Dies teilt dem Compiler mit, dass eine Variable im EEPROM abgelegt werden soll. Dies bietet bei der Verwendung der EEPROM folgende Vorteile bietet:
+In C gibt es allerdings die Möglichkeit, Variablen mit dem EEMEM-Attribut zu kennzeichnen (siehe Listing \ref{listing:eeprom-c}). Dies teilt dem Compiler mit, dass eine Variable im EEPROM abgelegt werden soll. Dies bietet bei der Verwendung des EEPROM folgende Vorteile bietet:
 \begin{enumerate}
 	\item Für EEMEM-Variablen müssen keine expliziten Speicheradressen angegeben werden. Die EEPROM-Speicherverwaltung wird vom Compiler übernommen.
 	\item Einer als EEMEM deklarierten Variable kann ein Standardwert zugewiesen werden, der beim Programmieren des Mikrocontrollers in den EEPROM geschrieben wird.
@@ -523,7 +523,7 @@ Eine vollständige Liste der fragment specifier findet sich in der Rust-Dokument
 \subsection{Pattern Matching}
 \label{sec:pattern-matching}
 
-Die Metavariablen von Makros werden per Pattern Matching erkannt. Die Muster können aus beliebig vielen fragment specifiern bestehen, aber auch beliebige andere Symbole enthalten. Beispielsweise passt das Muster \rustinline|(E $val:expr)| %$
+Die Metavariablen von Makros werden per Pattern Matching erkannt. Die Muster können aus beliebig vielen fragment specifiern bestehen, aber auch beliebige andere Symbole enthalten. Beispielsweise passt das Muster \rustinline|E $val:expr| %$
 auf den Ausdruck \rustinline|E 1 + 2|. 
 
 Für jedes Makro können mehrere dieser Muster definiert werden, von denen jeweils das erste passende ausgeführt wird. Außerdem können Makros rekursiv definiert werden. Dadurch ist es möglich, eine eigene Syntax für den Inhalt eines Makros zu definieren. Dies wird in folgendem Beispiel genauer erklärt.
@@ -773,8 +773,8 @@ Die in Abschnitt \ref{sec:dsl} definierte Sprache lässt sich durch die Verwendu
 
 Das grundlegende Prinzip des Makros wurde bereits in Listing \ref{listing:recursive-macro} als Beispiel vorgestellt: Aus einer Folge von Symbolen wird eine Kette von Methodenaufrufen generiert. Für die DSL wurde die Möglichkeit hinzugefügt, Parameter festzulegen. Dabei wird angenommen, dass zunächst beliebig viele parameterlose Funktionen aufgerufen werden und im Anschluss daran beliebig viele Funktionen mit je einem Parameter.
 
-Listing \ref{listing:process-params} zeigt die Parameterverarbeitung. Der Name der Funktion und ihr Parameter werden jeweils durch einen Doppelpunkt getrennt. Die einzelnen Paare aus \\ \textinline|funktion:parameter| werden durch Komma getrennt. Ein Beispielaufruf sieht somit folgendermaßen aus: \\ \rustinline|process_params!(obj, setX:5, setY:6, setZ:7)|.
-Dieser Aufruf wird dann zu \\ \rustinline|obj.setX(5).setY(6).setZ(7)| umgeformt.
+Listing \ref{listing:process-params} zeigt die Parameterverarbeitung. Der Name der Funktion und ihr Parameter werden jeweils durch einen Doppelpunkt getrennt. Die einzelnen Paare aus \\ \textinline|funktion:parameter| werden durch Komma getrennt. Ein Beispielaufruf sieht somit folgendermaßen aus:  \rustinline|process_params!(obj, setX:5, setY:6, setZ:7)|.
+Dieser Aufruf wird dann zu \rustinline|obj.setX(5).setY(6).setZ(7)| umgeformt.
 
 \begin{mylisting}
 	\caption{Makro zur Parameterverarbeitung}
@@ -863,18 +863,18 @@ Der DS18B20 nutzt ein einfaches 1-Wire-Protokoll zur Kommunikation \cite{ds18b20
 Reset:
 \begin{itemize}
 	\item Setze den Bus für mindestens $480 \mu{s}$ auf low um einen Reset auszulösen
-	\item Warte bis der Presence-Detect abgeschlossen ist (Der Sensor setzt den Bus für $60$-$240 \mu{s}$ auf low)
+	\item Warte bis der Presence-Detect abgeschlossen ist (Der Sensor setzt den Bus für $60$ bis $240 \mu{s}$ auf low)
 \end{itemize}
 
 Daten bitweise schreiben (LSB zuerst):
 \begin{itemize}
-	\item Bit '1': Setze den Bus für $1$-$15 \mu{s}$ auf low
+	\item Bit '1': Setze den Bus für $1$ bis $15 \mu{s}$ auf low
 	\item Bit '0': Setze den Bus für $60 \mu{s}$ auf low
 \end{itemize}
 
 Daten bitweise lesen (LSB zuerst):
 \begin{itemize}
-	\item Setze den Bus für $1$-$15 \mu{s}$ auf low
+	\item Setze den Bus für $1$ bis $15 \mu{s}$ auf low
 	\item Prüfe Bus innerhalb von $60 \mu{s}$:
 	\begin{itemize}
 		\item Bus low: Bit '0'
@@ -1006,7 +1006,7 @@ In diesem Projekt wurde die Tauglichkeit von Rust auf AVR-Mikrocontrollern unter
 
 Als erste Aufgabe musste ein entsprechender Compiler eingerichtet werden. Die einzelnen Schritte für die Installation wurden in Kapitel \ref{sec:Einrichtung-der-Entwicklungsumgebung} beschrieben. Dabei wurde auch auf mögliche Probleme bei der Installation eingegangen.
 
-Im Anschluss wurden verschiedene Eigenschaften von AVR-Rust analysiert und mit C verglichen. Alle für die Programmierung von Mikrocontrollern notwendigen Konstrukte wie Registerzugriff und ISRs wurden auch von Rust unterstützt. Als wesentliche Vorteile von Rust gegenüber C stellten sich dabei die automatische Indexprüfung zur Laufzeit und die Prüfung auf uninitialisierte Variablen zur Übersetzungszeit heraus.  
+Im Anschluss wurden verschiedene Eigenschaften von AVR-Rust analysiert und mit C verglichen. Alle für die Programmierung von Mikrocontrollern notwendigen Konstrukte wie Registerzugriff und ISRs wurden auch von Rust unterstützt. Beim Vergleich zeigten sich einige Vorteile von Rust gegenüber C, wie die automatische Indexprüfung zur Laufzeit und die Prüfung auf uninitialisierte Variablen zur Übersetzungszeit.  
 
 In einem Beispielprojekt wurden tiefergehende Eigenschaften von AVR-Rust untersucht. In dem Beispielprojekt wurde die Temperatur mithilfe eines Sensors gemessen und anschließend unter Verwendung eines WiFi-Moduls an einen Server gesendet. 
 
