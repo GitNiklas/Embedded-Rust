@@ -1,10 +1,10 @@
 // Low-level Parser Module for reading a byte stream.
 
-// Internal Macro to read next byte
-macro_rules! get {($next_byte:ident) => (
-    match $next_byte() {
+// Internal Macro to read next byte, early return on error
+macro_rules! get {($get_next_byte:ident) => (
+    match $get_next_byte() {
         Ok(x) => x,
-        Err(_) => return MiniParser($next_byte, false)  
+        Err(_) => return MiniParser($get_next_byte, false)  
     }
 );}
 
@@ -13,8 +13,8 @@ type NextByteFn = fn() -> Result<u8, ()>;
 
 pub struct MiniParser(NextByteFn, bool);
 
-pub fn start(next_byte: NextByteFn) -> MiniParser {
-    return MiniParser(next_byte, true);
+pub fn start(get_next_byte: NextByteFn) -> MiniParser {
+    return MiniParser(get_next_byte, true);
 }
 
 impl MiniParser {
@@ -26,15 +26,15 @@ impl MiniParser {
     
     // Skip a certain number of bytes (no timeout)
     pub fn skip(self, no_bytes: u8) -> MiniParser {
-        let MiniParser(next_byte, ok) = self;
+        let MiniParser(get_next_byte, ok) = self;
         if ok {
             for _i in 0.. no_bytes {
-                get!(next_byte);
+                get!(get_next_byte);
             }
-            return MiniParser(next_byte, true);
+            return MiniParser(get_next_byte, true);
         }
         else {
-            return MiniParser(next_byte, false);
+            return MiniParser(get_next_byte, false);
         }
     }
     
@@ -42,11 +42,11 @@ impl MiniParser {
     // CAUTION: May fail if the pattern contains parts of itself
     // (e.g. pattern "tetest" won't be found in input "tetetest")
     pub fn read_until(self, pattern: &[u8]) -> MiniParser {
-        let MiniParser(next_byte, ok) = self;
+        let MiniParser(get_next_byte, ok) = self;
         if ok {
             let mut i = 0;
             while i < pattern.len() {       
-                let byte = get!(next_byte);
+                let byte = get!(get_next_byte);
                 if byte == pattern[i] {
                     i += 1;
                 }
@@ -57,39 +57,39 @@ impl MiniParser {
                     i = 0;
                 }
             }
-            return MiniParser(next_byte, true);
+            return MiniParser(get_next_byte, true);
         }
         else {
-            return MiniParser(next_byte, false);
+            return MiniParser(get_next_byte, false);
         }
     }
     
     // Expect a specific Byte Sequence in stream, fail if Sequence not found
     pub fn tag(self, tag: &str) -> MiniParser {
-        let MiniParser(next_byte, ok) = self;
+        let MiniParser(get_next_byte, ok) = self;
         if ok {
             for c in tag.chars() { 
-                let byte = get!(next_byte);
+                let byte = get!(get_next_byte);
                 if c as u8 != byte {
-                    return MiniParser(next_byte, false);
+                    return MiniParser(get_next_byte, false);
                 }
             }
-            return MiniParser(next_byte, true);
+            return MiniParser(get_next_byte, true);
         }
         else {
-            return MiniParser(next_byte, false);
+            return MiniParser(get_next_byte, false);
         }
     }
     
     // Read a u8 from stream
     pub fn val_u8(self, val: &mut u8) -> MiniParser {
-        let MiniParser(next_byte, ok) = self;
+        let MiniParser(get_next_byte, ok) = self;
         if ok {
-            *val = get!(next_byte);
-            return MiniParser(next_byte, true);
+            *val = get!(get_next_byte);
+            return MiniParser(get_next_byte, true);
         }
         else {
-            return MiniParser(next_byte, false);
+            return MiniParser(get_next_byte, false);
         }
     }
 }
