@@ -26,19 +26,21 @@ footskip=1.0cm,includeheadfoot]{geometry}
 \usepackage{datetime} % Zur Ausgabe des aktuellen Datums
 \usepackage[chapter]{minted} % Multi-Color-Listings
 \usepackage{caption} % Minted: Für Bildunterschriften bei Listings
+\usepackage{ulem} % Text unterstreichen (\uline) und durchstreichen (\sout)
 
 %%%%%%%%%% Farben
 \definecolor{darkblue}{rgb}{0, 0, 0.5}
 \definecolor{darkgreen}{rgb}{0, 0.5, 0}
 \definecolor{darkred}{rgb}{0.7, 0, 0}
 \definecolor{darkyellow}{rgb}{0.9, 0.6, 0}
+\definecolor{gray}{rgb}{0.5, 0.5, 0.5}
 
 %%%%%%%%%% Konstanten
 
 \newcommand{\titel}{Embedded Rust}
+\newcommand{\untertitel}{Rust auf AVR-Mikrocontrollern}
 \newcommand{\authorname}{Niklas Kühl}
-\newcommand{\thesisname}{Ausarbeitung}
-\newcommand{\untertitel}{}
+\newcommand{\thesisname}{Master-Projekt}
 %\newcommand{\Datum}{20. Februar 2017}
 \newcommand{\Datum}{\the\day. \monthname{} \the\year} % Aktuelles Datum
 
@@ -50,6 +52,8 @@ footskip=1.0cm,includeheadfoot]{geometry}
 \newcommand{\todoPrioHigh}[1]{\todo[color=red!40, inline]{#1}}
 \newcommand{\todoPrioNormal}[1]{\todo[color=yellow!40, inline]{#1}}
 \newcommand{\todoPrioLow}[1]{\todo[color=green!40, inline]{#1}}
+
+\newcommand{\textGray}[1]{\textcolor{gray}{#1}}
 
 %%%%%%%%%% Konfiguration hyperref
 \hypersetup{ 
@@ -64,7 +68,7 @@ footskip=1.0cm,includeheadfoot]{geometry}
 }
 
 %%%%%%%%%% Literaturverzeichnis-Stil
-\bibliographystyle{abbrv}
+\bibliographystyle{unsrt}
 
 %%%%%%%%%% Konfiguration minted
 \usemintedstyle[rust]{colorful} % Style. Siehe https://www.sharelatex.com/learn/Code_Highlighting_with_minted#Reference_guide
@@ -77,13 +81,28 @@ footskip=1.0cm,includeheadfoot]{geometry}
 	linenos
 }
 
+\newmintinline{rust}{}
+\newmintinline{c}{}
+\newmintinline{bash}{}
+\newmintinline{text}{}
+
+
+\newminted{rust}
 % Globales Escapeinside
 %\setminted[rust]{escapeinside=\%\%}
 
 % Listing Umgebung, um caption hinzuzufügen
 \newenvironment{mylisting}[1][H]
 {\captionsetup{aboveskip=-0.2\normalbaselineskip}\begin{listing}[#1]}
+{\end{listing}}
+
+\newenvironment{rustlisting}[1]
+{
+	{\begin{listing}}
+		{\begin{minted}{rust}[#1]}
+			{\end{minted}}
 	{\end{listing}}
+}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
@@ -99,6 +118,7 @@ footskip=1.0cm,includeheadfoot]{geometry}
 
 \subject{\thesisname}
 \title{\titel}
+\subtitle{\Large \untertitel}
 \date{\vspace{-1cm}\Datum}
 
 \publishers{
@@ -124,6 +144,8 @@ footskip=1.0cm,includeheadfoot]{geometry}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \tableofcontents
+\listoffigures
+\listoftables
 \listoflistings
 \cleardoublepage
 \pagenumbering{arabic}
@@ -131,71 +153,24 @@ footskip=1.0cm,includeheadfoot]{geometry}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Einleitung}
 
+In der heutigen Welt spielt Automatisierung eine wichtige Rolle. Für die Steuerung von technischen Geräten werden dabei häufig Mikrocontroller eingesetzt. Programme für Mikrocontroller werden meistens in der Programmiersprache C geschrieben. Diese hardwarenahe Sprache gibt dem Entwickler nur wenig Hilfe zur Erkennung oder Vermeidung von Fehlern. Dadurch werden Programmierfehler oft erst im produktiven Einsatz entdeckt.
 
+Die Programmiersprache Rust soll eine sichere Alternative zu C darstellen. Durch in die Sprache integrierte Überprüfungen werden bestimmte Fehlerarten vermieden, wodurch robustere Programme geschrieben werden können. In dieser Arbeit soll die Tauglichkeit von Rust auf AVR-Mikrocontrollern (AVR-Rust) untersucht werden.  
 
+In Kapitel 2 werden die notwendigen Schritte für die Einrichtung einer Entwicklungsumgebung zur Programmierung von AVR-Mikrocontrollern in Rust beschrieben.
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Grundlagen}
+In Kapitel 3 werden grundlegende Eigenschaften von AVR-Rust untersucht und mit C verglichen. Dazu gehören notwendige Konstrukte zur Programmierung von Mikrcontrollern wie Registerzugriff und Interrupt-Funktionen. Weiterhin werden Vor- und Nachteile von AVR-Rust analysiert.
 
-\section{Rust}
+In Kapitel 4 wird dann ein Beispielprojekt vorgestellt, welches die Möglichkeiten von Rust auf AVR-Mikrocontrollern weiter untersucht. Eine wichtige Aufgabe ist hierbei die Entwicklung einer sicheren Sprache zur Kommunikation mit einem WiFi-Modul.
 
-- Programmiersprache
-	- Sichere Alternative zu C
-	- Dies soll v.a. erreicht werden durch ...
-	
-- Makros in Rust
-	- Makros können zur Erweiterung des Sprachumfangs genutzt werden. Problematische Eigenschaften wie sie C-Makros besitzten, werden allerdings vermieden
-	-  Makros sind im Compiler integriert
-		Es gibt also keinen Präprozessor wie bei C
-	- Da Rust-Makros nicht wie in C auf Textersetzung basieren, können daraus resultierende Fehler nicht auftreten:
-		- Falsche Ergebnisse durch Operator-vorrang
-	- Macro Hygine: Innerhalb von Makros definierte Variablen können keine anderen Variablen verstecken, wenn beide den gleichen Bezeichner haben
-	- Makros stellen wenig anforderungen an das, was in ihnen stehen kann
-		- Es können auch Symbole definiert werde
-		- Es lässt sich relativ frei eine eigene Syntax spezifizieren
-	- Parameter = metavariable
-	- Type = fragment specifier
-	- Da Rust Makros zu einem frühen Zeitpunkt der Kompilierung aufgelöst werden, können keine Rust-Typen wie u8 verwendet werden. Stattdessen besitzen die Parameter eines Makros (=metavariable) Typen (=fragment specifier) wie 
-	- expr (Beliebiger Rust-Ausruck, z.B. 2+2, func(x))
-	- token tree 
-
-- Was ist Rust
-- Vor/Nachteile 
-- Vorteile
-	- Sichere autom. Speicherverwaltung (ohne GC)
-	- Eingebauter Index-Check
-	- Kein Zugriff auf nicht initialisierten Speicher möglich
-- Nachteile
-	- Für Neulinge erstmal schwer zu verstehen??
-	
-- Anwendungsbereiche
-	- Desktop Entwicklung (Firefox)	
-	- Systemprogrammierung
-
-\section{C vs Rust}
-- Buffer Overflow
-	- Z.B. Es wird Protokoll zelenweise übertargen
-		-> Zeile ist zu lang und passt nicht in Buffer
-	C: Es passiert irgendwas
-	Rust: In der offiziellen AVR-LibCore wird dann eine Eindlosschleife ausgelöst -> ein wenig besser
-	Wenn die libcore angepasst wird, ist auch beliebiges Verhalten möglich, zb. Fehlemeldung oder Reset	
-	
-- Rust: gwöhnungsbedürftig wg. borrowing-Konzept
-	
-\section{Mikrocontroller-Programmierung}
-
-- Standardmäßig in C
-- Daher auch Fehler von C enthalten
-- Rust kann hier Vorteile bringen
-(wo? in welchen Bereichen?)
--> Array-Index-Check
--> Zugriff auf unitialisierten Speicher
-
-\todoinl{Evtl die Dreiteilung Analyse-Design-Implementierung??}
+In Kapitel 5 wird die Arbeit dann zusammengefasst und ein Ausblick gegeben.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Einrichtung der Entwicklungsumgebung}
+\label{sec:Einrichtung-der-Entwicklungsumgebung}
 
+In diesem Kapitel wird die Installation der Programme beschrieben, welche für die Programmierung von AVR-Mikrocontrollern mit Rust erforderlich sind. Dabei wird auch auf mögliche Fehler bei der Installation eingegangen.
+ 
 \section{Systemkonfiguration}
 
 Folgende Programmversionen wurden für die Entwicklung genutzt:
@@ -246,12 +221,13 @@ Folgende Hardware kam bei der Entwicklung zum Einsatz:
 
 \subsection{Grundlegendes Vorgehen}
 
-Um die Entwicklungsumgebung einzurichten, sollte eine normale Rust-Installation vorhanden sein. Zur Installation siehe \href{https://www.rust-lang.org/en-US/install.html}{www.rust-lang.org/en-US/install.html}. Außerdem sollte das alternative Rust-Buildsystem xargo installiert werden: \mintinline{bash}|cargo install xargo|.
+Um die Entwicklungsumgebung einzurichten, sollte eine normale Rust-Installation vorhanden sein (siehe \cite{rust-installation}). Außerdem sollte das alternative Rust-Buildsystem \textit{xargo} installiert sein.
 
-Für den Rust-Compiler für AVR-Mikrocontroller gibt es keine vorkompilierten Binärdateien. Daher muss er für des verwendete System neu übersetzt werden. Das grundlegende Vorgehen ist auf der entsprechenden GitHub-Seite beschrieben (\href{https://github.com/avr-rust/rust}{github.com/avr-rust/rust}). In den folgenden Kapiteln wird auf Eigenheiten und Probleme bei der Installation eingegangen.
+Für den Rust-Compiler für AVR-Mikrocontroller gibt es keine vorkompilierten Binärdateien. Daher muss der Compiler für das verwendete System neu übersetzt werden. Das grundlegende Vorgehen ist in Listung \ref{listing:installation-avr-rust} beschrieben \cite{github-avr-rust}. In den folgenden Kapiteln wird auf Eigenheiten und Probleme bei der Installation eingegangen.
 
-\begin{mylisting}[H]
+\begin{mylisting}
 	\caption{Kompilierung und Installation des AVR-Rust-Compilers  \cite{github-avr-rust}}
+	\label{listing:installation-avr-rust}
 	\begin{minted}{bash}
 	# Grab the avr-rust sources
 	git clone https://github.com/avr-rust/rust.git
@@ -280,9 +256,10 @@ Für den Rust-Compiler für AVR-Mikrocontroller gibt es keine vorkompilierten Bi
 		\end{minted}
 \end{mylisting}
 
+\newpage
 \subsection{Übersetzungsvorgang (make)}
 
-Die ersten Schritte bis zum eigentlichen Übersetzungsvorgang sollten ohne Probleme ausgeführt werden. Der aufwändigste Schritt ist der eigentliche Übersetzungsprozess Dieser kann einige Zeit (mehrere Stunden) in Anspruch nehmen und auch mit einem Fehler abbrechen. Im folgenden sind einige Fehler aufgelistet welche beim Übersetzungsvorgang auftraten, sowie mögliche Lösungsansätze:
+Die ersten Schritte bis zum eigentlichen Übersetzungsvorgang sollten ohne Probleme ausgeführt werden. Der aufwändigste Schritt ist der eigentliche Übersetzungsprozess. Dieser kann einige Zeit (mehrere Stunden) in Anspruch nehmen. Im folgenden sind einige Fehler aufgelistet, welche beim Übersetzungsvorgang auftraten, sowie mögliche Lösungsansätze:
 
 \begin{itemize}
 	\item Der Übersetzungsprozess bricht mit einem Speicherfehler ab 
@@ -298,32 +275,45 @@ Die ersten Schritte bis zum eigentlichen Übersetzungsvorgang sollten ohne Probl
 
 \subsection{Installationsvorgang (make install)}
 
-Der Befehl \mintinline{bash}|make install| installiert den AVR-Rust-Compiler in das Verzeichnis \mintinline{bash}|/opt/avr-rust|. Dies schlug zunächst fehl, da hierfür Root-Rechte erforderlich sind. Eine Ausführung von \mintinline{bash}|make install| mit Root-Rechten schlug ebenfalls fehl. Daher wurde der Ordner \mintinline{bash}|/opt/avr-rust| manuell mit vollen Berechtigungen angelegt: 
-\begin{minted}[linenos=false]{bash}
+Der Befehl \bashinline|make install| installiert den erstellten AVR-Rust-Compiler in das Verzeichnis \bashinline|/opt/avr-rust|. Dies schlug zunächst fehl, da hierfür Root-Rechte erforderlich sind. Eine Ausführung von \bashinline|make install| mit Root-Rechten schlug ebenfalls fehl. Daher wurde der Ordner \bashinline|/opt/avr-rust| manuell mit vollen Berechtigungen angelegt (Listing \ref{listing:installationsordner}). Dadurch konnte die Installation erfolgreich ausgeführt werden konnte. Im Anschluss wurden die Rechte des Ordners dann wieder eingeschränkt.
+
+\begin{mylisting}
+	\caption{Anlegen des Installationsordners}
+	\label{listing:installationsordner}
+	\begin{minted}[linenos=false]{bash}
 	sudo mkdir -m 777 /opt/avr-rust
-\end{minted}
-
-Dadurch konnte die Installation erfolgreich ausgeführt werden konnte. Im Anschluss wurden die Rechte des Ordners dann wieder eingeschränkt.
-
-
+	\end{minted}
+\end{mylisting}
 
 \subsection{Rust-Toolchain konfigurieren (rustup toolchain)}
 
-Damit die in \mintinline{bash}|/opt/avr-rust| installierte AVR-Toolchain genutzt wird, sollte folgender Befehl genutzt werden:
-\begin{minted}[linenos=false]{bash}
+Damit die in \bashinline|/opt/avr-rust| installierte AVR-Toolchain genutzt wird wurde der Befehl in Listing \ref{listing:rust-toolchain} genutzt.
+
+\begin{mylisting}
+	\caption{Konfiguration der Rust-Toolchain}
+	\label{listing:rust-toolchain}
+	\begin{minted}[linenos=false]{bash}
 	rustup toolchain link avr-toolchain /opt/avr-rust
-\end{minted}
+	\end{minted}
+\end{mylisting}
 
 \subsection{Installation der AVR-Toolchain}
 
-Zum Programmieren des Mikrocontrollers muss eine entsprechende Toolchain vorhanden sein, welche mit den folgendem Befehl installiert werden kann:
-\begin{minted}[linenos=false]{bash}
-	apt-get install avr-libc binutils-avr gcc-avr avrdude
-\end{minted}
+Zum Programmieren des Mikrocontrollers muss eine entsprechende Toolchain vorhanden sein, welche mit dem in Listing \ref{listing:avr-toolchain} dargestelltem Befehl installiert werden kann.
 
-Zum Zeitpunkt der Entwicklung war in den Paketquellen avrdude nur in der Version 6.2 enthalten. Das verwendete Entwicklungsboard \textit{ATmega328P Xplained Mini} wird jedoch erst ab avrdude 6.3 unterstützt, welcher mit folgenden Befehlen installiert werden kann:
-\begin{mylisting}[H]
+Das Programm avrdude dient zum Aufspielen eines Programms auf einen Mikrocontroller. Zum Zeitpunkt der Entwicklung war in den Paketquellen avrdude nur in der Version 6.2 enthalten. Das verwendete Entwicklungsboard \textit{ATmega328P Xplained Mini} wird jedoch erst ab avrdude 6.3 unterstützt. Die Installation ist in Listing \ref{listing:avrdude63} dargestellt.
+
+\begin{mylisting}
+	\caption{Installation der AVR-Toolchain}
+	\label{listing:avr-toolchain}
+	\begin{minted}[linenos=false]{bash}
+	apt-get install avr-libc binutils-avr gcc-avr avrdude
+	\end{minted}
+\end{mylisting}
+
+\begin{mylisting}
 	\caption{Installation avrdude 6.3}
+	\label{listing:avrdude63}
 	\begin{minted}{bash}
 	add-apt-repository ppa:ubuntuhandbook1/apps
 	apt-get update
@@ -333,165 +323,708 @@ Zum Zeitpunkt der Entwicklung war in den Paketquellen avrdude nur in der Version
 
 \subsection{Optional: udev-Regel anlegen}
 
-Da unter Linux zum Verwenden des AVR-Programmers standardmäßig Root-Rechte erforderlich sind, kann folgende Zeile in der Datei \mintinline{bash}|/etc/udev/rules.d/99_usbprog.rules| hinzugefügt werden, um die Programmierung auch für normale Benutzer zu erlauben:
-\begin{minted}[linenos=false]{text}
-	SUBSYSTEM=="usb", ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="2145", GROUP="plugdev", MODE="0660"
-\end{minted}
+Unter Linux sind zur Verwendung des AVR-Programmers standardmäßig Root-Rechte erforderlich. Um die Programmierung auch für normale Benutzer zu erlauben, kann die in Listing \ref{listing:udev} aufgeführte Zeile in der Datei  \bashinline|/etc/udev/rules.d/99_usbprog.rules| hinzugefügt werden.
 
+\begin{mylisting}
+	\caption{udev-Regel}
+	\label{listing:udev}
+	\begin{minted}[linenos=false]{bash}
+	SUBSYSTEM=="usb", ATTRS{idVendor}=="03eb", ATTRS{idProduct}=="2145", GROUP="plugdev", MODE="0660"
+	\end{minted}
+\end{mylisting}
+
+\newpage
 \section{Hello World AVR-Rust}
 
+Ein Beispiel Hello World Programm für AVR-Rust ist auf GitHub verfügbar \cite{github-avr-rust-blinky}. Dieses lässt eine LED blinken. Vor der Kompilierung müssen die in Listing \ref{listing:umgebungsvar} aufgeführten Umgebungsvariablen gesetzt werden. Anschließend kann der Übersetzungsprozess mit dem in Listing \ref{listing:kompilieren} dargestelltem Befehl gestartet werden. Die ELF-Datei wird im  Unterverzeichnis \bashinline|target/avr-atmega328p/release/| erstellt. Diese kann dann anschließend mithilfe von avrdude auf den Mikrocontroller aufgespielt werden.
 
+\begin{mylisting}
+	\caption{Zur Kompilierung nötige Umgebungsvariablen \cite{github-avr-rust-blinky}}
+	\label{listing:umgebungsvar}
+	\begin{minted}{bash}
+	# Needed until https://github.com/japaric/xargo/pull/205 goes through,
+	# to tell it where to find avr-atmega328p.json:
+	export RUST_TARGET_PATH=`pwd`
+	
+	# Likely needed if you've just compiled avr-rust from source:
+	export XARGO_RUST_SRC=/opt/avr-rust
+	\end{minted}
+\end{mylisting}
 
+\begin{mylisting}
+	\caption{Übersetzungsbefehl \cite{github-avr-rust-blinky}}
+	\label{listing:kompilieren}
+	\begin{minted}[linenos=false]{bash}
+	rustup run avr-toolchain xargo build --target avr-atmega328p --release
+	\end{minted}
+\end{mylisting}
+
+Zum Zeitpunkt der Entwicklung war auf der GitHub-Seite der Hinweis auf die Umgebungsvariable \bashinline|RUST_TARGET_PATH| noch nicht vorhanden. Daher wurde ein Workaround \cite{xargo-workaraound} verwendet: Es wurden die vom Programm referenzierten Repositories   \textit{arduino}\footnote{\url{https://github.com/avr-rust/ruduino}} und \textit{libcore}\footnote{\url{https://github.com/avr-rust/libcore}} lokal geklont und die Datei \bashinline|avr-atmega328p.json| in den Projektordnern hinzugefügt. 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Entwicklung}
+\chapter{Grundlagen von AVR-Rust}
 
-- Erst kleinere Testprogramme
-- Dann größeres Programm mit Peripherie-Ansteuerung
-- DSL mit Rust
-	- Method Chaining
-	- Makro DSL
-- Hello World AVR-Rust
-- Tests Rust vs C (AVR)
+In diesem Kapitel werden wichtige Eigenschaften von AVR-Rust untersucht und die Vor-/Nachteile gegenüber C dargelegt. Zu diesen Eigenschaften gehören unter anderem die Verwendung von Registern und Interrupt-Funktionen sowie Rust-Makros und die Rust-Panic-Funktion.
 
+\section{Registerzugriff}
 
-- Test des avr-periphery Programms erfolgte mit einem durch netcat beireigestellten Server, dadurch konnten die durch den µController gesendeten nachrichten auf einem PC angezeigt werden
- 
-\Figure[here, height=0.5\textheight, label={Schaltplan}, caption={Schaltplan}]{bilder/Rust_AVR_Schaltplan}
- 
-\begin{mylisting}[H]
-	\caption{Test Rust Listing}
+Zur Verwendung der I/O-Funktionen eines Mikrocontrollers ist der Zugriff auf die einzelnen Register des Controllers erforderlich. Unter C gibt es für jedes Register einen Namen (z.B. \cinline|PORTC|), sodass der Registerzugriff nicht über die Speicheradresse des Registers erfolgen muss.
+
+Für AVR-Rust gibt es die Bibliothek \textit{arduino} \cite{github-arduino}, in welcher entsprechende Konstanten für die Adressen aller Register definiert sind. Somit kann der Registerzugriff ähnlich wie in C erfolgen. 
+
+Da sich Registerwerte zu jedem beliebigen Zeitpunkt ändern können, müssen Compiler-optimierungen bei Zugriffen deaktiviert werden. In C gibt es hierfür die Möglichkeit, einzelne Variablen als \cinline|volatile| zu markieren. In Rust ist dies nicht möglich, stattdessen gibt es die Funktionen \rustinline|read_volatile()| und \rustinline|write_volatile()|. Die Funktionen sind als unsicher markiert, somit ist der Aufruf nur in einem \rustinline|unsafe| Block erlaubt. Listing \ref{listing:register-example} zeigt einen beispielhaften Registerzugriff.
+
+\begin{mylisting}
+	\caption{Registerzugriff in Rust}
+	\label{listing:register-example}
 	\begin{minted}{rust}
-	fn open_server_connection() -> Result<TCPConnection, ()> {
-		esp8266::at().send().wait();
-		esp8266::at().ext().reset().send().wait();
+	let x = unsafe { read_volatile(PINB) }
+	unsafe { write_volatile(PORTC, 0xFF) }
+	\end{minted}
+\end{mylisting} 
 
-		esp8266::at().ext().wifi().mode().set().cw_mode(CWMode::Client) .send().wait();
-		esp8266::at().ext().multi_connections().set().enabled(true) .send().wait();
-		esp8266::at().ext().wifi().scan().send().wait();
+Die \textit{arduino}-Bibliothek enthält auch eine Abstraktionsschicht zur Initialisierung der Timer und des UART, sodass entsprechender Code dann einfacher zu verstehen ist (Siehe Listings \ref{listing:timer-init} und \ref{listing:timer-init-arduino}).
+
+\begin{mylisting}
+	\caption{Timer-Initialisierung mit direktem Registerzugriff}
+	\label{listing:timer-init}
+	\begin{minted}{rust}
+	unsafe { 
+		write_volatile(TCCR0A, WGM01);
+		write_volatile(TCCR0B, CS01 | CS00);
+		write_volatile(OCR0A, OCR0A_VAL);
+		write_volatile(TIMSK0, OCIE0A);
+	}
+	\end{minted}
+\end{mylisting} 
+
+\begin{mylisting}
+	\caption{Timer-Initialisierung mit \textit{arduino}-Bibliothek}
+	\label{listing:timer-init-arduino}
+	\begin{minted}{rust}
+	timer0::Timer::new()
+		.waveform_generation_mode(
+			timer0::WaveformGenerationMode::ClearOnTimerMatchOutputCompare)
+		.clock_source(timer0::ClockSource::Prescale64)
+		.output_compare_1(Some(OCR0A_VAL))
+		.configure();
+	\end{minted}
+\end{mylisting} 
+
+\section{Interrupt-Routinen}
+
+Mit Interrupt-Routinen können Ereignisse verarbeitet werden, auf die direkt reagiert werden muss. Tritt ein solches Ereignis auf, wird die normale Programmausführung unterbrochen und die entsprechende Interrupt Service Routine (ISR) aufgerufen. Zur Programmierung echtzeitfähiger Anwendungen sind solche Routinen zwingend erforderlich.
+
+In C kann eine ISR anhand eines symbolischen Namens definiert werden. Eine Beispiel-ISR ist in Listing \ref{listing:isr-example-c} dargestellt. Dieser Name wird dann in eine Interrupt-Vektor-Nummer aufgelöst. In AVR-Rust sind diese symbolischen Namen nicht vorhanden, daher muss der Interrupt direkt mit der Vektor-Nummer definiert werden (Beispiel in Listing \ref{listing:isr-example}). Durch Rust-Makros ist es allerdings möglich, entsprechende symbolische Namen einzuführen. 
+
+\begin{mylisting}
+	\caption{Interrupt Service Routine in C}
+	\label{listing:isr-example-c}
+	\begin{minted}{c}
+	ISR(TIMER0_COMPA_vect){
+		Time++;
+	}
+	\end{minted}
+\end{mylisting} 
+
+\begin{mylisting}
+	\caption{Interrupt Service Routine in Rust}
+	\label{listing:isr-example}
+	\begin{minted}{rust}
+	#[no_mangle]
+	pub extern "avr-interrupt" fn __vector_14() {
+		unsafe { TIME += 1; } 
+	}
+	\end{minted}
+\end{mylisting} 
+	
+Bei der Verwendung von Interrupts ist zu beachten, dass die ISR im globalen Namensraum liegen muss. Daher müssen in Untermodulen definierte Interrupt-Funktionen im Hauptmodul in den globalen Namensraum importiert werden (siehe Listing \ref{listing:import-isr}). Für in externen Bibliotheken definierte Interrupt-Funktionen ist dies allerdings nicht notwendig.
+
+\begin{mylisting}
+	\caption{Import einer ISR im Hauptmodul}
+	\label{listing:import-isr}
+	\begin{minted}{rust}
+	use timer;
+	pub use timer::__vector_14;
+	\end{minted}
+\end{mylisting} 
+
+\section{Verwendung des EEPROM}
+
+Der EEPROM dient zur persistenten Speicherung von Daten. Da zur Verwendung lediglich der Zugriff auf bestimmte Register erforderlich ist, kann der EEPROM auch in AVR-Rust problemlos benutzt werden (Siehe Listing \ref{listing:eeprom-rust}).
+
+\begin{mylisting}
+	\caption{Verwendung des EEPROM in Rust}
+	\label{listing:eeprom-rust}
+	\begin{minted}{rust}
+	const EEPROM_VAL_ADDR: u16 = 0x0004;
+	eeprom::write_u8(EEPROM_VAL_ADDR, 0x42);
+	eeprom::read_u8(EEPROM_VAL_ADDR);
+	\end{minted}
+\end{mylisting} 
+
+In C gibt es allerdings die Möglichkeit, Variablen mit dem EEMEM-Attribut zu kennzeichnen (siehe Listing \ref{listing:eeprom-c}). Dies teilt dem Compiler mit, dass eine Variable im EEPROM abgelegt werden soll. Dies bietet bei der Verwendung der EEPROM folgende Vorteile bietet:
+\begin{enumerate}
+	\item Für EEMEM-Variablen müssen keine expliziten Speicheradressen angegeben werden. Die EEPROM-Speicherverwaltung wird vom Compiler übernommen.
+	\item Einer als EEMEM deklarierten Variable kann ein Standardwert zugewiesen werden, der beim Programmieren des Mikrocontrollers in den EEPROM geschrieben wird.
+\end{enumerate}
+
+Da es das EEMEM-Attribut noch nicht in Rust gibt, ist die Verwendung des EEPROM somit in C einfacher als in Rust.
+
+\begin{mylisting}
+	\caption{Verwendung des EEPROM in C}
+	\label{listing:eeprom-c}
+	\begin{minted}{c}
+	uint8_t eeVal EEMEM = 0x42;
+	eeprom_read_byte(&eeVal);
+	\end{minted}
+\end{mylisting}
+
+\section{Makros}
+\label{sec:macros}
+
+\subsection{Übersicht}
+
+Makros sind Befehle, die zur Ergänzung von Programmiersprachen dienen. Die meisten Makros werden wie normale Funktionen verwendet.
+
+In C sind Makros durch einen Präprozessor realisiert, welcher eine simple Textersetzung ausführt. Dadurch weisen C-Makros einige Nachteile auf. Beispielsweise wird in dem C-Makro \cinline|#define MUL2(x) 2 * x| der Operatorvorrang nicht berücksichtigt, sodass ein Aufruf von \cinline|MUL2(1+1)| einen falschen Wert von 3 ergibt. 
+
+In Rust werden Makros direkt vom Compiler unterstützt und besitzen daher nicht die Nachteile von C-Makros. Rust-Makros werden auf syntaktischen Elementen wie Ausdrücken oder Syntaxbäumen definiert und erlauben sichere syntaktische Umformungen \cite{rust-doc-macros}. In Listing \ref{listing:macro-example} ist ein Makro zum Auslesen eines Registers dargestellt.
+
+\begin{mylisting}
+	\caption{Makro in Rust}
+	\label{listing:macro-example}
+	\begin{minted}{rust}
+	// Definition
+	macro_rules! reg_read {
+		($reg:ident) => (
+			unsafe{ read_volatile($reg as *mut u8) }
+		);
+	}
+	
+	// Verwendung
+	let x = reg_read!(PINB);
+	\end{minted}
+\end{mylisting} 
+
+\subsection{Fragment Specifier}
+
+Die Parameter eines Makros (im vorigem Beispiel \rustinline|$reg|) %$
+heißen \textbf{Metavariablen}. Solche Metavariablen besitzen einen \textbf{fragment specifier} genannten Typ, der festlegt, welche syntaktischen Strukturen für die Metavariable erlaubt sind. Es sind unter anderem folgende  fragment specifier möglich:
+\begin{itemize}
+	\item \textit{ident} - Ein gültiger Rust-Bezeichner
+	\item \textit{block} - Ein von geschweiften Klammern umschlossener Block von Anweisungen
+	\item \textit{expr} - Ein Ausdruck
+	\item \textit{tt} - Ein Token Tree (kann nahezu beliebige syntaktische Konstrukte repräsentieren)
+\end{itemize}
+
+Eine vollständige Liste der fragment specifier findet sich in der Rust-Dokumentation \cite{rust-doc-macros}.
+
+\subsection{Pattern Matching}
+\label{sec:pattern-matching}
+
+Die Metavariablen von Makros werden per Pattern Matching erkannt. Die Muster können aus beliebig vielen fragment specifiern bestehen, aber auch beliebige andere Symbole enthalten. Beispielsweise passt das Muster \rustinline|(E $val:expr)| %$
+auf den Ausdruck \rustinline|E 1 + 2|. 
+
+Für jedes Makro können mehrere dieser Muster definiert werden, von denen jeweils das erste passende ausgeführt wird. Außerdem können Makros rekursiv definiert werden. Dadurch ist es möglich, eine eigene Syntax für den Inhalt eines Makros zu definieren. Dies wird in folgendem Beispiel genauer erklärt.
+
+\begin{mylisting}
+	\caption{Rekursives Makro für benutzerdefinierte Syntax}
+	\label{listing:recursive-macro}
+	\begin{minted}{rust}
+	macro_rules! process_expr {
+		($obj:expr; $func:tt) => { 
+			call_func!($obj, $func) 
+		};
+		($obj:expr; $func:tt $($tail:tt)* ) => { 
+			process_expr!(call_func!($obj, $func); $($tail)*);
+		};
+	}
+	
+	macro_rules! call_func {
+		($obj:expr, +)          => {$obj.inc()};
+		($obj:expr, ?)          => {$obj.get()};
+	}
+	\end{minted}
+\end{mylisting} 
+
+Die in Listing \ref{listing:recursive-macro} definierten Makros dienen zur Generierung einer Kette von Methodenaufrufen. Beispielsweise kann aus dem Aufruf \rustinline|process_expr!(x; + ?)| der Ausdruck \rustinline|x.inc().get()| generiert werden.
+
+Das Hilfsmakro \rustinline|call_func| dient dabei lediglich zur Übersetzung der Symbole in Funktionsbezeichner, beispielsweise wird \rustinline|call_func!(x, ?)| zu \rustinline|x.get()| umgeformt.
+
+In den Mustern von \rustinline|process_expr| muss die erste Metavariable (\rustinline|$obj:expr|) %$
+von den anderen Metavariablen getrennt werden. Da diese vom Typ \rustinline|expr| ist, muss ein in Ausdrücken verbotenes Trennsymbol verwendet werden. Hier wird das Semikolon verwendet.
+
+Das erste Muster von \rustinline|process_expr| stellt den nicht-rekursiven Fall dar, bei dem lediglich ein Objekt und ein Funktionssymbol übergeben werden. In diesem Fall wird einfach die dem Symbol entsprechende Funktion aufgerufen.
+
+Das zweite Muster von \rustinline|process_expr| bekommt ein Objekt, ein Funktionssymbol sowie eine Restliste von Symbolen (\rustinline|$($tail:tt)*|). Auf dem Objekt wird die entsprechende Funktion aufgerufen und das Resultat dient als neues Objekt für den rekursiven Aufruf des Makros.
+
+\section{Panic-Funktion}
+
+In Rust gibt  es eine spezielle Funktion, die \textit{panic}-Funktion, welche bei Laufzeitfehlern aufgerufen wird. Auf PC-Systemen wird ein \textit{panic} z. B. bei Buffer Overfows, Integer Overflows oder fehlgeschlagenen Assertions ausgelöst und führt zum Programmabbruch mit einer entsprechenden Fehlermeldung.
+
+Auch auf AVR-Rust gibt es die \textit{panic}-Funktion, allerdings muss sie hier vom Benutzer definiert werden. Vom Rust-Typsystem wird dabei sichergestellt, dass die Funktion nicht zurückkehrt: Durch den speziellen Rückgabetyp \rustinline|!| wird erzwungen, dass die Funktion mit einer Endlosschleife endet. Abgesehen davon ist beliebiges Verhalten möglich. Ein Beispiel für eine \textit{panic}-Funktion ist in Listing \ref{listing:panic-example} gezeigt. 
+
+\begin{mylisting}
+	\caption{Panic-Funktion}
+	\label{listing:panic-example}
+	\begin{minted}{rust}
+	#[lang = "panic_fmt"]
+	#[unwind]
+	pub extern fn rust_begin_panic(_msg: (), _file: &'static str, _line: u32, _col: u32) -> ! 
+	{
+		cli!();
+		uart::put_str_no_isr("ERROR!");
+		restart();
+		loop { } // Wait for restart
+	}
+	\end{minted}
+\end{mylisting} 
+
+Bei Tests fiel auf, dass die benutzerdefinierte \textit{panic}-Funktion nie aufgerufen wurde --- in der Standardbibliothek wird an der entsprechenden Stelle lediglich eine Endlosschleife ausgeführt. Daher wurde der Code der \textit{libcore} angepasst, um die benutzerdefinierte \textit{panic}-Funktion aufzurufen (Abbildung \ref{fig:call-user-panic}). Nach dieser Anpassung wurde bei einem Laufzeitfehler die \textit{panic}-Funktion korrekt aufgerufen, wodurch die Fehlerbehandlung möglich wird. 
+
+\Figure[here, height=0.3\textheight, label={fig:call-user-panic}, caption={Aufruf der benutzerdefinierten panic-Funktion in der libcore}]{bilder/call_panic}
+
+\section{Buffer Overflow}
+
+Ein Buffer Overflow ist ein sicherheitskritischer Fehler, welcher auftritt, wenn eine zu speichernde Datenmenge größer ist als der dafür vorgesehene Speicherbereich. Die Grenze des Speicherbereichs wird dabei ignoriert und die Daten in die folgenden Speicherzellen geschrieben. Die darin enthaltenen Daten (z. B. der Programmcode) werden überschrieben. Somit ist bei einem Buffer Overflow beliebiges undefiniertes Verhalten des Programms möglich.
+
+Diese Art Fehler ist sehr häufig in C-Programmen anzutreffen, da die Speicherverwaltung hier manuell vom Benutzer erfolgt. Auch auf Mikrocontrollern ist dies der Fall, etwa wenn eine empfangene Nachricht länger als das dafür vorgesehene Array ist.
+
+Bei Rust kann diese Art von Fehler nicht auftreten, da bei jedem Arrayzugriff  eine Indexüberprüfung stattfindet. Schlägt die Prüfung fehl, so wird ein \textit{panic} ausgelöst, wodurch die normale Programmausführung gestoppt wird. In der \textit{panic}-Funktion kann dann eine Fehlerbehandlung stattfinden.
+
+\section{Integer Overflow}
+
+Ein Integer Overflow tritt auf wenn das Ergebnis einer Berechnung nicht im Wertebereich des verwendeten Datentyps liegt. Das Ergebnis ist in einem solchen Fall ein anderer mit dem Datentyp darstellbarer Wert, weswegen so Rechenfehler entstehen können.
+
+Auf PC-Systemen wird bei einem Integer Overflow ein \textit{panic} ausgelöst, wodurch es zu einem Programmabbruch kommt. Um diesen zu verhindern, muss der Entwickler dafür sorgen, dass keine Überläufe auftreten. 
+
+Bei AVR-Rust werden Überläufe hingegen ignoriert, wie es auch in C der Fall ist. Dieses Verhalten ist auf Mikrocontrollern durchaus sinnvoll. Denn hier gibt es einige Anwendungen wie Timer, bei denen das Überlaufverhalten erwünscht ist. 
+
+\section{Uninitialisierte Variablen}
+
+Die Verwendung von uninitialisierten Variablen ist ein weiterer typischer Fehler in C. Wird auf eine Variable vor der ersten Zuweisung zugegriffen, so besitzt sie einen nicht festgelegten Wert, wodurch undefiniertes Programmverhalten entstehen kann. Da der C-Compiler in solchen Fällen nicht zwingend eine Warnung produziert, können so schwerwiegende Fehler entstehen.
+
+Bei Rust hingegen müssen Variablen zwingend initialisiert werden. Durch eine Datenflussanalyse kann der Compiler zu Übersetzungszeit feststellen, ob es einen Zugriff auf eine nicht initialisierte Variable gibt. Wenn ein solcher Fall festgestellt wird, lässt sich das Programm nicht übersetzen.
+
+An bestimmten Stellen kann es allerdings auch erforderlich sein, auf beliebige (möglicherweise uninitialisierte) Speicheradressen zuzugreifen. Hierzu bietet Rust das Schlüsselwort \textit{unsafe}. In \textit{unsafe}-Blöcken ist der Zugriff auf sogenannte Raw-Pointer möglich, welche auf beliebige Speicheradressen verweisen oder den Wert \textit{null} haben dürfen (siehe Listing \ref{listing:unsafe}). Mit diesem speziellen Typ ist somit ein Zugriff auf uninitialisierten Speicher möglich. Für alle anderen Typen gilt allerdings auch in \textit{unsafe}-Blöcken, dass sie vor Verwendung initialisiert werden müssen. 
+
+\begin{mylisting}
+	\caption{unsafe-Block mit Verwendung eines Raw-Pointers}
+	\label{listing:unsafe}
+	\begin{minted}{rust}
+	let mem = 0x20 as *const u8;
+	unsafe {
+		uart::put_u8(*mem);
+	}
+	\end{minted}
+\end{mylisting} 
+
+\section{Performance}
+
+Um die Performance von AVR-Rust mit C zu vergleichen, wurde ein Algorithmus in beiden Sprachen implementiert und anschließend getestet. Dabei handelt es ich um einen Algorithmus zur Berechnung der Fibonacci-Zahlen. Um auch die Performance bei Speicherzugriffen zu testen, wurden die Ergebnisse in einen globalen Buffer geschrieben. Ein Auszug der Ergebnisse ist in Tabelle \ref{table:perf-result} dargestellt. Es ist zu erkennen, dass bei den längeren Berechnungen C etwa um den Faktor $1.5$ schneller als Rust ist. Dies ist ein relativ gutes Ergebnis, da der C-Compiler über Jahre hinweg optimiert werden konnte. Der AVR-Rust-Compiler hingegen befindet sich noch in einem frühem Stadium und hat derartige Optimierungen noch nicht erfahren.
+
+\begin{center}
+	\begin{tabulary}{\columnwidth}{|C|C|C|}
+		\hline
+		\textbf{Iteration} & \textbf{Insgesamt benötigte Zeit (C)} & \textbf{Insgesamt benötigte Zeit (Rust)} \\
+		\hline
+		1 & 100 ms & 100 ms \\
+		2 & 201 ms & 200 ms \\
+		... & ... & ...\\
+		24 & 3.2 s & 3.6 s\\
+		25 & 3.8 s & 4.5 s\\
+		26 & 4.7 s & 5.8 s\\
+		27 & 6.0 s & 7.9 s\\
+		28 & 8.2 s & 11 s\\
+		29 & 11.7 s & 16 s\\
+		30 & 17 s & 25 s\\
+		31 & 26 s & 39 s\\
+		32 & 40 s & 61 s\\
+		33 & 63 s & 97 s\\
+		34 & 101 s & 156 s\\
+		35 & 161 s & 250 s\\
+		\hline
+	\end{tabulary}
+	\captionof{table}{Ergebnisse der Performance-Messung}
+	\label{table:perf-result}
+\end{center}
+
+Weiterhin wurde die Größe der Binärdateien zweier verhaltensgleicher Programme überprüft (siehe Tabelle \ref{table:binary-size}). Es ist ersichtlich dass Rust hier ähnliche Ergebnisse wie C produziert, abhängig von der Optimierungsstufe für die Kompilierung des C-Programms.
+
+\begin{center}
+	\begin{tabulary}{\columnwidth}{|C|C|}
+		\hline
+		\textbf{Sprache} & \textbf{Größe der Binärdatei} \\
+		\hline
+		C mit Optimierung auf Größe (-Os) & 1516 Byte \\
+		\hline
+		Rust & 2658 Byte \\
+		\hline
+		C mit Optimierung auf Geschwindigkeit (-O3) & 2818 Byte\\
+		\hline
+	\end{tabulary}
+	\captionof{table}{Größe der erzeugten Binärdateien}
+	\label{table:binary-size}
+\end{center}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Beispielprojekt}
+\label{sec:Beispielprojekt}
+
+Um tiefer gehende Eigenschaften von Rust zu testen, wurde ein Beispielprojekt umgesetzt, in dem externe Hardware mit AVR-Rust angesprochen wurde. Das Programm misst die aktuelle Umgebungstemperatur und kann diese an einen Server senden. Zur Messung der Temperatur wurde der Temperatursensor Dallas 18B20 verwendet. Zur TCP-basierten Kommunikation mit einem Server wurde das WiFi-Modul ESP-8266l verwendet.
 		
-		let connect_wifi = esp8266::at().ext().wifi().connection().set().name(WIFI_NAME) .pw(WIFI_PW).send().wait();
-		if let Ok(_) = connect_wifi {
-			return esp8266::at().ext().tcp().open().set()
-			.tcp_handle(TCPHandle::Multi1) .hostname(HOST).port(PORT).send().wait();
-		}
-		else {
-			return Err(());
-		}
-	}
+\section{Hardware}
+
+Die Verkabelung der einzelnen Komponenten ist in Abbildung \ref{figure:schaltplan} dargestellt.
+
+\Figure[here, height=0.47\textheight, label={figure:schaltplan}, caption={Schaltplan}]{bilder/Rust_AVR_Schaltplan}
+
+\section{WiFi-Modul}
+
+\subsection{Protokoll des ESP-8266}
+
+Der ESP8266 nutzt eine serielle Schnittstelle zur Kommunikation. Als Protokoll werden die sogenannten AT-Kommandos verwendet. Die meisten der unterstützten Befehle sind dabei \textit{extended commands}, welche nicht im Standard-AT-Befehlssatz enthalten sind. Diese Kommandos sind folgendermaßen aufgebaut:
+\begin{itemize}
+	\item Ausführen eines Kommandos: \textinline|AT+<cmd>|
+	\item Ausführen eines Kommandos mit Parametern: \textinline|AT+<cmd>=<value0>,<value1>,...|
+	\item Abfrage eines Wertes: \textinline|AT+<cmd>?|
+\end{itemize}
+
+Die Kommandos werden mit \textinline|CR LF| abgeschlossen. In Listing \ref{listing:at-example} ist eine Beispielsitzung mit einigen AT-Kommandos dargestellt. Der vollständige Befehlssatz ist unter \cite{esp8266-cmds} beschrieben.
+
+\begin{mylisting}
+	\caption{Beispielsitzung mit AT-Kommandos}
+	\label{listing:at-example}
+	\begin{minted}{text}
+		AT // Test der Kommunikation
+		AT+RST // Reset
+		ATE // Echo einschalten
+		AT+CWMODE? // Betriebsmodus abfragen
+		AT+CWMODE=1 // Betriebsmodus auf "Client" setzen
+		AT+CIPMUX=1 // Mehrere parallele Verbindungen erlauben
+		
+		AT+CWLAP // Verfügbare WiFi-Netzwerke auflisten
+		AT+CWJAP="SSID","pw" // Mit Netzwerk verbinden
+		AT+CIPSTART=0,"TCP","192.168.2.3",80 // Baut über Verbindung 0 eine TCP-Verbindung zum angegebenen Server auf
+		AT+CIPSEND=0,16 // Sendet 16 Bytes an Verbindung 0
+		Temperatur=19.25 // Daten für den Server (16 Bytes)
+		
+		AT+CIPCLOSE=0 // Schließt Verbindung 0
+		AT+CWQAP // Trennt Verbindung vom Netzwerk
 	\end{minted}
 \end{mylisting} 
 
-\begin{mylisting}[H]
-	\caption{Und das gleiche mit Makros}
-	\begin{minted}[escapeinside=\%\%]{rust}
-fn open_server_connection() -> Result<TCPConnection, ()> {
-	esp_cmd!(send wait AT)?;
-	esp_cmd!(send wait AT+RST)?;
-	
-	esp_cmd!(send wait ATE true)?;
-	esp_cmd!(send wait AT+CWMODE = cw_mode:(CWMode::Client))?;
-	//let mode = esp_cmd!(send get AT+CWMODE?)?; 
-	esp_cmd!(send wait AT+CIPMUX = enabled%:% true)?;
-	esp_cmd!(send wait AT+CWLAP)?;
-	
-	esp_cmd!(send wait AT+CWJAP = name:%WIFI%_%NAME%, pw:%WIFI%_%PW%)?;
-	return esp_cmd!(send wait AT+CIPSTART = tcp_handle:(TCPHandle::Multi1), hostname: %HOST%, port:%PORT%);
-}
+\newpage
+\subsection{DSL}
+\label{sec:dsl}
+
+Die AT-Kommandos sollen im Quelltext nicht als einfache Zeichenketten hinterlegt werden. Denn dies stellt eine potenzielle Fehlerquelle dar und kann dazu führen, dass fehlerhafte Kommandos gesendet werden. Stattdessen sollen die Befehle mit einer DSL (Domain-specific language), einer anwendungsspezifischen Sprache, zusammengebaut werden. Durch die Verwendung der DSL wird eine Überprüfung der Kommandos zur Übersetzungszeit möglich.
+
+Zur Implementierung der DSL werden Traits genutzt, welche es erlauben für einen Typen eine Menge von Methoden zu definieren. Für jeden Teil der AT-Kommandos (z.B. \textinline|AT|, \textinline|+|, \textinline|CW|, ...) gibt es eine entsprechende Methode (z.B. \rustinline|at()|, \rustinline|ext()|, \rustinline|wifi()|, ...). Jede dieser Methoden besitzt als Rückgabewert ein \textit{Trait Object}. Auf diesem Objekt sind dann weitere Methoden definiert. Auf diese Weise lässt sich kontrollieren, welche Methode bei welchem Objekt aufgerufen werden kann, da immer nur die im jeweiligen Trait definierten Methoden zur Verfügung stehen. In Listing \ref{listing:at-example-small} ist ein Beispiel-Kommando dargestellt.
+
+\begin{mylisting}
+	\caption{Beispiel AT-Kommando in Rust}
+	\label{listing:at-example-small}
+	\begin{minted}[linenos=false]{rust}
+	at().ext().wifi().connection().set().name(b"SSID").pw(b"pw");
 	\end{minted}
 \end{mylisting} 
 
-\begin{mylisting}[H]
-	\caption{Test Rust Listing 2}
+In Abbildung \ref{figure:dsl-struktur} ist ein Auszug aus der Struktur der DSL dargestellt. Die Funktion \rustinline|at()| ist die einzige Funktion, welche ohne vorhandenes Trait-Objekt aufgerufen werden kann und dient somit als Einstiegspunkt jedes Kommandos. Der Rückgabewert ist vom Typ \rustinline|ATBase|, auf welchem dann unter anderem die Methode \rustinline|ext()| definiert ist. Nach diesem Schema wird dann weiter verfahren, um das komplette Kommando zu bilden.
+
+Die Funktion \rustinline|set()| gibt ein Trait-Objekt zurück, welches die Parameter für das entsprechende Kommando speichert (im obigen Beispiel \rustinline|name| und \rustinline|pw|). Diese Parameter können dann durch Setter-Funktion geändert werden.
+
+Für alle Traits, welche ein valides Kommando repräsentieren, wird die Methode \rustinline|send()| implementiert, welche das Kommando an den ESP8266 sendet. Diese Methode liefert dann ein Trait-Objekt zurück auf der eine von zwei (optional aufrufbaren) Methoden definiert ist:
+\begin{enumerate}
+	\item \rustinline|get()| - Für alle abfragenden Kommandos implementiert. Wartet bis die Antwort empfangen wurde und gibt den abgefragten Wert zurück.
+	\item \rustinline|wait()| - Für alle Befehle implementiert, welche keinen Wert abfragen. Wartet bis die Antwort (Echo) empfangen wurde. 
+\end{enumerate}
+
+\Figure[here, height=0.95\textheight, label={figure:dsl-struktur}, caption={Struktur der DSL}]{bilder/Aufrufbaum_DSL}
+
+In Listing \ref{listing:at-example-rust} ist eine Beispielsitzung in Rust dargestellt (diese entspricht dem Beispiel in Listing \ref{listing:at-example}). 
+
+\begin{mylisting}
+	\caption{Rust-Beispielsitzung mit Verwendung von Methoden}
+	\label{listing:at-example-rust}
 	\begin{minted}{rust}
-#[no_mangle]
-fn send_temperature() { // Send Temperature to server
-	if let Ok(conn) = open_server_connection() {
-		for _i : u8 in 0.. 10 {
-			conn.send_str(b"Temperature: ").wait();
-			let temp = ds18b20::read_temperature();
-			let temp_str = ds18b20::temperature_to_str(&temp);
-			conn.send_str(&temp_str).wait();
-			conn.send_str(b"\r\n").wait();
-			delay_ms(1000);
-		}
-		close_server_connection(conn);
+	at().send().wait();
+	at().ext().reset().send().wait();
+	at().echo(true).send().wait();
+	let mode = at().ext().wifi().mode().query().send().get();
+	at().ext().wifi().mode().set().cw_mode(CWMode::Client).send().wait();
+	at().ext().multi_connections().set().enabled(true).send().wait();
+	
+	at().ext().wifi().scan().send().wait();
+	at().ext().wifi().connection().set().name(b"SSID") .pw(b"pw").send().wait();
+	if let Ok(conn) = at().ext().tcp().open().set().tcp_handle(TCPHandle::Multi1) .hostname(b"192.168.2.3").port(80).send().wait() 
+	{
+		conn.send_str(b"Temperatur=19.25").wait();
+		conn.close().wait();
 	}
-}
+	at().ext.wifi().disconnect().send().wait();
 	\end{minted}
 \end{mylisting} 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Ergebnisse}
-% ... Ergebnisse aus der Untersuchung von Rust auf AVR
-- Erkenntnisse aus den Tests
-	(Vor/Nachteile zu C)
-- Probleme bei der Entwicklung 
+\subsection{Makro-basierte DSL}
 
+Die in Abschnitt \ref{sec:dsl} definierte Sprache lässt sich durch die Verwendung von Makros vereinfachen. Wie in Abschnitt \ref{sec:pattern-matching} erläutert, kann für die Inhalte eines Rust-Makros nahezu beliebige Syntax definiert werden. Für die DSL wurde ein Makro definiert, dessen Syntax sich an der normalen AT-Kommandosyntax orientiert. 
+
+Das grundlegende Prinzip des Makros wurde bereits in Listing \ref{listing:recursive-macro} als Beispiel vorgestellt: Aus einer Folge von Symbolen wird eine Kette von Methodenaufrufen generiert. Für die DSL wurde die Möglichkeit hinzugefügt, Parameter festzulegen. Dabei wird angenommen, dass zunächst beliebig viele parameterlose Funktionen aufgerufen werden und im Anschluss daran beliebig viele Funktionen mit je einem Parameter.
+
+Listing \ref{listing:process-params} zeigt die Parameterverarbeitung. Der Name der Funktion und ihr Parameter werden jeweils durch einen Doppelpunkt getrennt. Die einzelnen Paare aus \\ \textinline|funktion:parameter| werden durch Komma getrennt. Ein Beispielaufruf sieht somit folgendermaßen aus: \\ \rustinline|process_params!(obj, setX:5, setY:6, setZ:7)|.
+Dieser Aufruf wird dann zu \\ \rustinline|obj.setX(5).setY(6).setZ(7)| umgeformt.
+
+\begin{mylisting}
+	\caption{Makro zur Parameterverarbeitung}
+	\label{listing:process-params}
+	\begin{minted}{rust}
+	macro_rules! process_params {
+		($obj:expr, $func:tt : $val:tt) => { 
+			$obj.$func($val)
+		};
+		($obj:expr, $func:tt : $val:tt, $($tail:tt)*) => {
+			process_params!($obj.$func($val), $($tail)*)
+		};
+	}
+	\end{minted}
+\end{mylisting} 
+
+Als Einstiegspunkt der Makro-basierten DSL dient das Makro \rustinline|esp_cmd!(...)|. Dieses erzeugt das erste Trait-Objekt mittels \rustinline|at()| und ruft auf diesem dann die gewünschten Methoden auf. Außerdem können vor das erzeugte Kommando die optionalen Schlüsselwörter \textit{send}, \textit{wait} und \textit{get} geschrieben werden, welche die entsprechenden Methoden aufrufen (siehe Listing \ref{listing:dsl-macro-examples}). 
+
+\begin{mylisting}
+	\caption{Einige Beispiele für die Verwendung des DSL-Makros}
+	\label{listing:dsl-macro-examples}
+	\begin{minted}{rust}
+	let x = esp_cmd!(AT+CWLAP);
+	x.send();
+	esp_cmd!(send AT+CWLAP);
+	esp_cmd!(send wait AT+CWLAP);
+	esp_cmd!(send AT+CWMODE?);  
+	esp_cmd!(send get AT+CWMODE?);  
+	\end{minted}
+\end{mylisting} 
+
+In Listing \ref{listing:dsl-expansion} werden die einzelnen Schritte bei der Expansion des Makros an einem Beispiel gezeigt. Jede Zeile stellt dabei einen Expansionsschritt dar (Codeabschnitte welche sich bei einem Expansionsschritt nicht ändern, sind ausgegraut). 
+
+\begin{mylisting}
+	\caption{Expansion des Makros esp\_cmd}
+	\label{listing:dsl-expansion}
+	\begin{minted}[escapeinside=\%\%]{text}
+	esp_cmd!(AT+CWJAP = name:b"SSID")	
+	process_expr!(at(), %\textGray{+CWJAP = name:b"SSID"}%)	
+	%\textGray{process\_expr!(}%call_func!(%\textGray{at()}%, +)%\textGray{, CWJAP = name:b"SSID")}%
+	%\textGray{process\_expr!(at()}%.ext()%\textGray{, CWJAP = name:b"SSID")}%
+	%\textGray{process\_expr!(}%call_func!(%\textGray{at().ext()}%, CWJAP)%\textGray{, = name:b"SSID")}%
+	%\textGray{process\_expr!(}%call_func!(call_func!(%\textGray{at().ext()}%, CW), JAP)%\textGray{, = name:b"SSID")}%
+	%\textGray{process\_expr!(}%call_func!(%\textGray{at().ext()}%.wifi(), JAP)%\textGray{, = name:b"SSID")}%
+	%\textGray{process\_expr!(at().ext().wifi()}%.connection()%\textGray{, = name:b"SSID")}%
+	process_params!(call_func!(%\textGray{at().ext().wifi().connection()}%, =), %\textGray{name:b"SSID"}%)
+	process_params!(%\textGray{at().ext().wifi().connection()}%.set(), %\textGray{name:b"SSID"}%)
+	at().ext().wifi().connection().set().name(b"SSID")
+	\end{minted}
+\end{mylisting} 
+	
+In Listing \ref{listing:at-example-rust-macros} ist die Beispielsitzung aus Listing \ref{listing:at-example-rust} unter Verwendung des DSL-Makros dargestellt.
+ 
+\begin{mylisting}
+	\caption{Rust-Beispielsitzung mit Verwendung von Makros}
+	\label{listing:at-example-rust-macros}
+	\begin{minted}{rust}
+	esp_cmd!(send wait AT);
+	esp_cmd!(send wait AT+RST);	
+	esp_cmd!(send wait ATE true);
+	esp_cmd!(send wait AT+CWMODE = cw_mode:(CWMode::Client));
+	let mode = esp_cmd!(send get AT+CWMODE?); 
+	esp_cmd!(send wait AT+CIPMUX = enabled:true);
+	
+	esp_cmd!(send wait AT+CWLAP);	
+	esp_cmd!(send wait AT+CWJAP = name:b"SSID", pw:b"pw");
+	
+	return esp_cmd!(send wait AT+CIPSTART = tcp_handle:(TCPHandle::Multi1), hostname: b"192.168.2.3", port:80);
+
+	if let Ok(conn) = esp_cmd!(send wait AT+CIPSTART = tcp_handle:(TCPHandle::Multi1), hostname: b"192.168.2.3", port:80) 
+	{
+		conn.send_str(b"Temperatur=19.25").wait();
+		conn.close().wait();
+	}
+	esp_cmd!(send wait AT+CWQAP);
+	\end{minted}
+\end{mylisting} 
+
+
+\section{Temperatursensor}
+
+\subsection{Protokoll des Dallas 18B20}
+
+Der DS18B20 nutzt ein einfaches 1-Wire-Protokoll zur Kommunikation \cite{ds18b20-datasheet}. Dieses arbeitet folgendermaßen (Der Bus ist standardmäßig high):
+
+Reset:
+\begin{itemize}
+	\item Setze den Bus für mindestens $480 \mu{s}$ auf low um einen Reset auszulösen
+	\item Warte bis der Presence-Detect abgeschlossen ist (Der Sensor setzt den Bus für $60$-$240 \mu{s}$ auf low)
+\end{itemize}
+
+Daten bitweise schreiben (LSB zuerst):
+\begin{itemize}
+	\item Bit '1': Setze den Bus für $1$-$15 \mu{s}$ auf low
+	\item Bit '0': Setze den Bus für $60 \mu{s}$ auf low
+\end{itemize}
+
+Daten bitweise lesen (LSB zuerst):
+\begin{itemize}
+	\item Setze den Bus für $1$-$15 \mu{s}$ auf low
+	\item Prüfe Bus innerhalb von $60 \mu{s}$:
+	\begin{itemize}
+		\item Bus low: Bit '0'
+		\item Bus high: Bit '1'
+	\end{itemize}
+\end{itemize}
+
+In Tabelle \ref{table:ds18b20-cmds} sind die Befehle des Temperatursensors dargestellt, welche zum Messen der Temperatur benutzt werden.
+
+\begin{center}
+	\begin{tabulary}{\columnwidth}{|C|C|}
+		\hline
+		\textbf{Befehl} & \textbf{Beschreibung}\\
+		\hline
+		Skip Rom 0xCCh & Überspringt die Geräteadressierung\\
+		\hline
+		Convert T 0x44h & Misst die Temperatur und speichert diese im Scratchpad\\
+		\hline
+		Read Scratchpad 0xBEh & Liest das Scratchpad aus\\
+		\hline
+	\end{tabulary}
+	\captionof{table}{Verwendete Befehle des DS18B20}
+	\label{table:ds18b20-cmds}
+\end{center}
+
+Es ist zu beachten, dass zwischen den Befehlen regelmäßig ein Reset nach folgendem Schmea erfolgen muss: 
+\begin{enumerate}
+	\item Reset
+	\item Adressierungsbefehl (Skip Rom)
+	\item Befehl (Convert bzw. Read Scratchpad)
+	\item Antwort lesen
+\end{enumerate}
+
+Zum Auslesen des Scratchpad nach dem Convert-Befehl muss also zunächst ein Reset und eine Adressierung erfolgen (Die Inhalte des Scratchpad bleiben bei einem Reset erhalten).
+
+\subsection{Implementierung des Protokolls}
+
+Die Kontrolle des Eindrahtbus erfolgt durch eine ISR, welche von einem Timer kontrolliert wird. Der Timer wird nach jedem ISR-Aufruf angepasst, um die unterschiedlichen Wartezeiten zu realisieren. Die Methode basiert dabei auf einem Zustandsautomaten, je nach Zustand der globalen Variable \rustinline{STATE} wird der entsprechende Codeabschnitt ausgeführt.
+
+In Listing \ref{listing:read-onewire} ist als Beispiel die Routine zum Lesen des Bus dargestellt. Beim 1. Aufruf der ISR (Zustand: \rustinline{State::BeginCycle}) wird der Bus auf low gesetzt und der Timer so konfiguriert, dass er nach $5 \mu{s}$ erneut aufgerufen wird. Beim 2. Aufruf wird der Bus wieder auf high gesetzt. Beim 3. Aufruf (also nach $10 \mu{s}$) wird der Bus gelesen und das entsprechende Bit gespeichert. Außerdem wird der Timer auf eine Wartezeit von $60 \mu{s}$ konfiguriert, da nach dieser Zeit der Schreibvorgang des Sensors auf jeden Fall abgeschlossen ist. Beim 4. Aufruf wird dann, abhängig davon, ob noch weitere Bits empfangen werden, zurück in den Initialzustand oder in den Endzustand gewechselt
+ 
+\begin{mylisting}
+	\caption{ISR zum Lesen des 1-Wire-Bus}
+	\label{listing:read-onewire}
+	\begin{minted}{rust}
+	fn isr_read() {
+		match unsafe_read!(STATE) {
+			State::BeginCycle => {
+				bus_low();          
+				unsafe_write!(STATE = State::After5us);
+				configure_timer(TIMER_CONF_5_US);
+			}
+			State::After5us => {
+				bus_high();         
+				unsafe_write!(STATE = State::After10us);
+			}
+			State::After10us => {
+				unsafe_write!(BUFFER = bus_read() << 7 | BUFFER >> 1 );     
+				unsafe_write!(STATE = State::After70us);
+				configure_timer(TIMER_CONF_60_US);
+			}
+			_ => { // State::After70us
+				unsafe_write!(BIT_CNT = BIT_CNT + 1);
+				if unsafe_read!(BIT_CNT) < 8 {
+					unsafe_write!(STATE = State::BeginCycle);
+					configure_timer(TIMER_CONF_10_US);
+				}
+				else {
+					unsafe_write!(STATE = State::Done);
+					disable_timer2();
+				}
+			}
+		}
+	}
+	\end{minted}
+\end{mylisting} 
+
+\section{Probleme bei der Entwicklung}
+
+\subsection{Fehlerhafter Code}
+
+Bei der Entwicklung fiel auf, dass ein bestimmter Codeabschnitt (Listing \ref{listing:err-bitrotation}) nicht korrekt übersetzt wurde. Die Variable \rustinline{y} hat nach Ausführung nur den Wert von \rustinline{tmp_1}, die Variable \rustinline{tmp_2} wird verworfen.
+
+Wenn die Variablen \rustinline{tmp_1} und \rustinline{tmp_2} mit \rustinline{read_volatile} gelesen werden, wird der Codeabschnitt korrekt übersetzt. Daher wird der Fehler wahrscheinlich durch Compileroptimierungen erzeugt.
+
+Dies ist ein schwerwiegender Fehler, da das Verhalten des kompilierten Programms vom Quellcode abweicht. Derartige Fehler sind extrem schwer zu finden.
+
+\begin{mylisting}
+	\caption{Nicht korrekt übersetzter Codeabschnitt}
+	\label{listing:err-bitrotation}
+	\begin{minted}{rust}
+	let tmp_1: u8 = x << 1;
+	let tmp_2: u8 = x >> 7;
+	let y: u8 =  tmp_1 | tmp_2;
+	\end{minted}
+\end{mylisting} 
+
+\subsection{Nicht kompilierbares Projekt}
+
+In einer späten Phase der Entwicklung trat ein Fehler bei der Kompilierung auf (Listing \ref{listing:compile-err}). Der Quellcode wies keine Fehler auf, es handelt sich dabei um einen internen Fehler im Compiler. Durch Umschreiben des Programms wurde der Fehler zunächst behoben, bei der weiteren Entwicklung trat jedoch ein ähnlicher Fehler auf (Listing \ref{listing:compile-err2}).
+ 
+Bei einer Analyse des Quelltextes konnte kein bestimmter Codeabschnitt identifiziert werden, der dieses Verhalten verursacht. Änderungen an unterschiedlichen Codeabschnitten im Projekt hatten Einfluss auf den Fehler.
+Teilweise wurde der Fehler auch durch das Auskommentieren bestimmter Codezeilen provoziert. 
+
+Dies ist ebenfalls ein schwerwiegender Fehler, da er die Entwicklung behindern oder sogar verhindern kann. Der Entwickler erwartet, dass ein fehlerfreies Programm vom Compiler übersetzt werden kann. 
+
+\begin{mylisting}
+	\caption{Fehlermeldung des Compilers (1)}
+	\label{listing:compile-err}
+	\begin{minted}{text}
+rustc: rust/src/llvm/lib/CodeGen/RegAllocBase.cpp:148: void llvm::RegAllocBase::allocatePhysRegs(): Assertion `!SplitVirtReg->empty() && "expecting non-empty interval"' failed.
+	\end{minted}
+\end{mylisting} 
+
+\begin{mylisting}
+	\caption{Fehlermeldung des Compilers (2)}
+	\label{listing:compile-err2}
+	\begin{minted}{text}
+	rustc: rust/src/llvm/lib/CodeGen/MachineBasicBlock.cpp:1299: llvm::MachineBasicBlock::livein_iterator llvm::MachineBasicBlock::livein_begin() const: Assertion `getParent()->getProperties().hasProperty( MachineFunctionProperties::Property::TracksLiveness) && "Liveness information is accurate"' failed.
+	\end{minted}
+\end{mylisting} 
+
+Der Fehler in Listing \ref{listing:compile-err2} ist bereits bekannt und wurde in der aktuellen Version von AVR-Rust bereits behoben\footnote{ \url{https://github.com/avr-rust/rust/issues/99}}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Fazit}
 
-- Im allgemeinen eignet sich rust zur systmprogrammierung. Durch A, B und C ergeben sich Vorteile gegenüber der Verwendung von C. Dadurch können robustere Programme entwickelt werden.
+In diesem Projekt wurde die Tauglichkeit von Rust auf AVR-Mikrocontrollern untersucht. 
 
-Die eingesetzte Compiler Version hatte jedoch einige Schwächen
+Als erste Aufgabe musste ein entsprechender Compiler eingerichtet werden. Die einzelnen Schritte für die Installation wurden in Kapitel \ref{sec:Einrichtung-der-Entwicklungsumgebung} beschrieben. Dabei wurde auch auf mögliche Probleme bei der Installation eingegangen.
 
-Somit wird vom EInsatz von Rust auf AVR vorerst abgeraten. Wenn der Compiler stabil ist, kann Rust allerdings gut verwendet werden.
+Im Anschluss wurden verschiedene Eigenschaften von AVR-Rust analysiert und mit C verglichen. Alle für die Programmierung von Mikrocontrollern notwendigen Konstrukte wie Registerzugriff und ISRs wurden auch von Rust unterstützt. Als wesentliche Vorteile von Rust gegenüber C stellten sich dabei die automatische Indexprüfung zur Laufzeit und die Prüfung auf uninitialisierte Variablen zur Übersetzungszeit heraus.  
 
-\chapter{Notizen}
+In einem Beispielprojekt wurden tiefergehende Eigenschaften von AVR-Rust untersucht. In dem Beispielprojekt wurde die Temperatur mithilfe eines Sensors gemessen und anschließend unter Verwendung eines WiFi-Moduls an einen Server gesendet. 
 
-- Sind Maybe-Typen von Rust effizient auf AVR?
-- Sind ISR's re-entrant bei Rust
-	=> Was passiert, wenn bei ISR-Ausführung ein weiterer Interrupt auftritt
-- Was gibt es für std-libraries für avr rust
-- unsafe Rust
-	- Was ist daran unsicher
-		- Echte Pointer möglich, die NULL sein dürfen
-			=> Spezieller Zeigertyp, die STd-Refs von Rust dürfen auch in unsafe Code nie null sein
-		- Mit diesen Zeigertypen ist auch der Zugriff auf beliebige SPeicheradressen möglich
-	- wie kann man die unsafe-sectionen auf ein min reduzieren?
-	=> Durch Funktionen und Makros lassen sich unsafe-zugriffe kapseln
-	- z.B. auch erzeugen einer vermeintlich sicheren Referenz auf globales Obj
-		=> trotz normaler Referenz nicht thread-safe
-	
-- Performance
-	- Test: Fibonacci Berechnung inkl Speicherzugriffe
-		Ergebnis: C etwa um Faktor 1.5 schneller, abhängig vom Optimierungslevel
-	- Code größe
-		1 C mit opt-size	1500By
-		2 Rust				2600
-		3 C mit opt-speed	2800
-	- RAM Verbrauch
-		C: Bei 120 Calls Stack overflow; ~ 120*16 = 1920Bytes von 2048
-		Rust Bei 100 Calls			~ 100*16  = 1600Bytes
-	- ALLERDINGS: C COmpiler wurde über Jahre hinweg Optimiert, daher sind diese Zahlen schon ganz gut
-	
-- Rust Out of Bounds
-	- panic wird ausgelöst
-	- Nutzer muss panic Funktion definieren, welche feslegt was dann passieren soll
-	- Die Funktion darf nicht zurückkehren; dies wird durch Rust zur Übersetzungszeit festgelegt
-	- ABER: In der avr-libcore wird die benutzerdefinierte Funktion nicht aufgerufen; stattdessen wird Endlossschleife ausgelöst
-	- Wenn libcore angepasst wird (WO?) ist bei OOB beliebiges Verhalten wie zB Fehlermeldung oder Neustart möglich
-	
-- Vorteile durch Typsystem
-	- Erkennung unf Verhinderung von uninitialisierten  Variablen
-	- Verwechselung von Variablen werden leichter erkannt 
-		(da Zwischen u8 und usize unterschieden wird)
-	- Fehler bei Zuweisung unterschiedlicher Typen - Keine implizite Typumwandlung
-	
-- Was fehlt AVR-Rust
-	- Stabiler Compiler
-	- Std-Library
-		- Delay-Funktion
-		- ISR-Definitionen (wie in c die interrupt.h) 
+Für die Kommunikation mit dem WiFi-Modul über AT-Kommandos wurde eine DSL entwickelt, durch welche sich die Kommandos flexibel zusammensetzen lassen. Fehlerhafte Kommandos werden schon zur Übersetzungszeit erkannt, wodurch garantiert wird, dass nur valide Kommandos gesendet werden. Durch die Verwendung von Makros wurde eine sichere, kompakte Notation der Kommandos ermöglicht, welche sich an den eigentlichen AT-Kommandos orientiert.
 
-\section{DSL}
+Für die Kommunikation mit dem Temperatursensor war eine Steuerung der Datenleitung im Mikrosekundenbereich notwendig, welche durch Interrupts implementiert wurde. Es traten hierbei keine Performance-Probleme auf. Somit kann AVR-Rust grundsätzlich auch für zeitkritische Anwendungen eingesetzt werden.
 
-- Verbieten, dass andere Kommandos als die unterstützten zusammengesetzt werden
-- Fehler werden schon zur Übersetzungszeit erkannt
-	=> Wie sehen die Fehlermedlungen aus? (Makro-DSL)
-		Wenn man sich beim Makro verschrieben hat, kommt dann eine aussagekräftige Fehlermeldung???
-=> Stichwort: Fluent Interface
+Zum Ende der Entwicklungsarbeit wurden einige Fehler in der eingesetzten Compiler-Version festgestellt. Einer der Fehler führte dazu, dass ein fehlerfreies Projekt nicht übersetzt werden konnte, wodurch die weitere Arbeit stark behindert wurde. Somit ist der produktive Einsatz von AVR-Rust noch nicht zu empfehlen.
+
+Da der AVR-Rust-Compiler allerdings kontinuierlich weiterentwickelt wird, ist davon auszugehen, dass solche Fehler behoben werden und der Compiler stabiler wird. Wenn dies der Fall ist, kann AVR-Rust produktiv eingesetzt werden, um robuste Programme auf Mikrocontrollern zu ermöglichen.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\chapter{Quellcode}
+
+Der Quellcode des Projekts ist auf folgender GitHub-Seite zu finden: \\ \url{https://github.com/GitNiklas/Embedded-Rust}.
+
+Das in Kapitel \ref{sec:Beispielprojekt} vorgestellte Beispielprojekt befindet sich im Unterverzeichnis \href{https://github.com/GitNiklas/Embedded-Rust/tree/master/src/avr_periphery}{avr-periphery}.
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Literaturverzeichnis
