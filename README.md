@@ -8,7 +8,7 @@ This is the main project, which realizes a WiFi-based temperature sensor, using 
  * ESP8266 WiFi Module
  * DS18B20 Temperature Sensor
 
-For the communication with the ESP8266, a DSL i used which allows compile-time-checked command generation:
+For the communication with the ESP8266, a DSL is used which allows compile-time-checked command generation:
 ```rust
 // Sending Command AT+CWJAP="SSID","pw"
 esp_cmd!(send AT+CWJAP = name:b"SSID", pw:b"pw");
@@ -32,5 +32,5 @@ Subdirectory tests contains small programs to test various features of avr-rust:
  * Buffer Overflow detection with panic
  * Detection of uninitialized variables 
  * Performance Test
- * Other Errors
+ * Other Error tests
  
